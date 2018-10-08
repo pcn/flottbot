@@ -65,8 +65,8 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	// init api client
 	api := c.new()
 
-	// get bot rooms
-	bot.Rooms = getRooms(api)
+	// get bot channels
+	bot.Channels = getChannels(api)
 
 	// get bot id
 	rat, err := api.AuthTest()

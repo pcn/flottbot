@@ -26,10 +26,10 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 // This will read in schedule type rules from the rules map and create cronjobs that will
 // trigger messages to be sent for processing to the Matcher function via 'inputMsgs' channel.
 func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
-	// Wait for bot.Rooms to populate (find a less hacky way to do this)
+	// Wait for bot.Channels to populate (find a less hacky way to do this)
 	for {
-		_nil := bot.Rooms[""]
-		if len(bot.Rooms) > 0 {
+		_nil := bot.Channels[""]
+		if len(bot.Channels) > 0 {
 			bot.Log.Debugf("Scheduler connected to %s channels%s", strings.Title(bot.ChatApplication), _nil)
 			break
 		}
@@ -41,11 +41,11 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 	for _, rule := range rules {
 		if rule.Active && len(rule.Schedule) > 0 {
 			// Pre-checks before executing rule as a cron job
-			if len(rule.OutputToRooms) == 0 && len(rule.OutputToUsers) == 0 {
-				bot.Log.Debug("Scheduling rules requires the 'output_to_rooms' and/or 'output_to_users' fields to be set")
+			if len(rule.OutputToChannels) == 0 && len(rule.OutputToUsers) == 0 {
+				bot.Log.Debug("Scheduling rules requires the 'output_to_channels' and/or 'output_to_users' fields to be set")
 				continue
-			} else if len(rule.OutputToRooms) > 0 && len(bot.Rooms) == 0 {
-				bot.Log.Debugf("Could not connect Scheduler to rooms: %s", rule.OutputToRooms)
+			} else if len(rule.OutputToChannels) > 0 && len(bot.Channels) == 0 {
+				bot.Log.Debugf("Could not connect Scheduler to channels: %s", rule.OutputToChannels)
 				continue
 			} else if len(rule.Respond) > 0 || len(rule.Hear) > 0 {
 				bot.Log.Debug("Scheduling rules does not allow the 'respond' and 'hear' fields")
@@ -58,7 +58,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 			cron := cron.New()
 			scheduleName := rule.Name
 			input := fmt.Sprintf("<@%s> ", bot.ID) // send message as self
-			outputRooms := rule.OutputToRooms
+			outputChannels := rule.OutputToChannels
 			outputUsers := rule.OutputToUsers
 			cron.AddFunc(rule.Schedule, func() {
 				// Build message
@@ -67,7 +67,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 				message.Input = input // send message as self
 				message.Attributes["from_schedule"] = scheduleName
 				message.Type = models.MsgTypeChannel
-				message.OutputToRooms = outputRooms
+				message.OutputToChannels = outputChannels
 				message.OutputToUsers = outputUsers
 				inputMsgs <- message
 			})

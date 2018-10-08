@@ -29,7 +29,7 @@ actions:
 # response
 format_output: "On ${date} in the year ${year}: ${event}"
 direct_message_only: false
-output_to_rooms:
+output_to_channels:
   - general
 
 # help

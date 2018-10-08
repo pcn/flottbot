@@ -23,7 +23,7 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 	message.BotMentioned = mentioned
 
 	// if msgType != models.MsgTypeDirect {
-	// 	name, ok := findKey(bot.Rooms, channel)
+	// 	name, ok := findKey(bot.Channels, channel)
 	// 	if !ok {
 	// 		bot.Log.Warnf("Could not find name of channel '%s'.", channel)
 	// 	}

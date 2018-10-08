@@ -129,13 +129,13 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 		}
 	// This is an Event shared between RTM and the Events API
 	case *slack.MemberJoinedChannelEvent:
-		// get bot rooms
-		bot.Rooms = getRooms(api)
-		bot.Log.Debugf("%s has joined the channel %s", bot.Name, bot.Rooms[ev.Channel])
+		// get bot channels
+		bot.Channels = getChannels(api)
+		bot.Log.Debugf("%s has joined the channel %s", bot.Name, bot.Channels[ev.Channel])
 	case *slack.MemberLeftChannelEvent:
-		// remove room
-		delete(bot.Rooms, ev.Channel)
-		bot.Log.Debugf("%s has left the channel %s", bot.Name, bot.Rooms[ev.Channel])
+		// remove channel
+		delete(bot.Channels, ev.Channel)
+		bot.Log.Debugf("%s has left the channel %s", bot.Name, bot.Channels[ev.Channel])
 	default:
 		bot.Log.Errorf("getEventsAPIEventHandler: Unrecognized event type")
 	}
@@ -238,20 +238,20 @@ func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan
 	}
 }
 
-// getRooms - return a map of rooms
-func getRooms(api *slack.Client) map[string]string {
-	rooms := make(map[string]string)
+// getChannels - return a map of channels
+func getChannels(api *slack.Client) map[string]string {
+	channels := make(map[string]string)
 	// get public channels
-	channels, _ := api.GetChannels(true)
-	for _, channel := range channels {
-		rooms[channel.Name] = channel.ID
+	slackChannels, _ := api.GetChannels(true)
+	for _, channel := range slackChannels {
+		channels[channel.Name] = channel.ID
 	}
 	// get private channels
 	groups, _ := api.GetGroups(true)
 	for _, group := range groups {
-		rooms[group.Name] = group.ID
+		channels[group.Name] = group.ID
 	}
-	return rooms
+	return channels
 }
 
 // getSlackUsers gets Slack user objects for each user listed in messages 'output_to_users' field
@@ -282,10 +282,10 @@ func getUserID(email string, users []slack.User, bot *models.Bot) string {
 
 // handleDirectMessage - handle sending logic for direct messages
 func handleDirectMessage(api *slack.Client, message models.Message, bot *models.Bot) error {
-	// Is output to rooms set?
-	if len(message.OutputToRooms) > 0 {
-		bot.Log.Warn("You have specified 'direct_message_only' as 'true' and provided 'output_to_rooms'." +
-			" Messages will not be sent to listed rooms. If you want to send messages to these rooms," +
+	// Is output to channels set?
+	if len(message.OutputToChannels) > 0 {
+		bot.Log.Warn("You have specified 'direct_message_only' as 'true' and provided 'output_to_channels'." +
+			" Messages will not be sent to listed channels. If you want to send messages to these channels," +
 			" please set 'direct_message_ony' to 'false'.")
 	}
 	// Is output to users set?
@@ -302,10 +302,10 @@ func handleDirectMessage(api *slack.Client, message models.Message, bot *models.
 func handleNonDirectMessage(api *slack.Client, users []slack.User, message models.Message, bot *models.Bot) error {
 	// 'direct_message_only' is either 'false' OR
 	// 'direct_message_only' was probably never set
-	// Is output to rooms set?
-	if len(message.OutputToRooms) > 0 {
-		for _, roomID := range message.OutputToRooms {
-			err := sendChannelMessage(api, roomID, message)
+	// Is output to channels set?
+	if len(message.OutputToChannels) > 0 {
+		for _, channelID := range message.OutputToChannels {
+			err := sendChannelMessage(api, channelID, message)
 			if err != nil {
 				return err
 			}
@@ -331,7 +331,7 @@ func handleNonDirectMessage(api *slack.Client, users []slack.User, message model
 	}
 	// Was there no specified output set?
 	// Send message back to original channel
-	if len(message.OutputToRooms) == 0 && len(message.OutputToUsers) == 0 {
+	if len(message.OutputToChannels) == 0 && len(message.OutputToUsers) == 0 {
 		err := sendBackToOriginMessage(api, message)
 		if err != nil {
 			return err
@@ -389,7 +389,7 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 
 		// If the message read was not a dm, get the name of the channel it came from
 		if msgType != models.MsgTypeDirect {
-			name, ok := findKey(bot.Rooms, channel)
+			name, ok := findKey(bot.Channels, channel)
 			if !ok {
 				bot.Log.Warnf("populateMessage: Could not find name of channel '%s'.", channel)
 			}
@@ -493,8 +493,8 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 				// NOTE: looks like there is another unsupported event we could use
 				//   Received unmapped event \"member_joined_channel\"
 				// Maybe watch ffor an update to slack package for future support
-				if len(bot.Rooms[ev.Channel.Name]) == 0 {
-					bot.Rooms[ev.Channel.Name] = ev.Channel.ID
+				if len(bot.Channels[ev.Channel.Name]) == 0 {
+					bot.Channels[ev.Channel.Name] = ev.Channel.ID
 					bot.Log.Debugf("Joined new channel. %s(%s) added to lookup", ev.Channel.Name, ev.Channel.ID)
 				}
 			case *slack.HelloEvent:

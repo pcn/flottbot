@@ -8,7 +8,7 @@ type Rule struct {
 	Schedule           string   `mapstructure:"schedule"`
 	Args               []string `mapstructure:"args" binding:"required"`
 	DirectMessageOnly  bool     `mapstructure:"direct_message_only" binding:"required"`
-	OutputToRooms      []string `mapstructure:"output_to_rooms" binding:"omitempty"`
+	OutputToChannels   []string `mapstructure:"output_to_channels" binding:"omitempty"`
 	OutputToUsers      []string `mapstructure:"output_to_users" binding:"omitempty"`
 	AllowUsers         []string `mapstructure:"allow_users" binding:"omitempty"`
 	AllowUserGroups    []string `mapstructure:"allow_usergroups" binding:"omitempty"`

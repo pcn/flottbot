@@ -30,7 +30,7 @@ remotes:
 # output settings
 format_output: Here are your options...
 direct_message_only: false
-output_to_rooms:
+output_to_channels:
   - general
 # help
 help_text: options

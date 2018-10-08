@@ -26,7 +26,7 @@ type Message struct {
 	EndTime           int64
 	Attributes        map[string]string
 	Vars              map[string]string
-	OutputToRooms     []string
+	OutputToChannels  []string
 	OutputToUsers     []string
 	Remotes           Remotes
 }
@@ -66,13 +66,13 @@ func MessageTimestamp() int64 {
 // NewMessage creates a new message with initialized fields
 func NewMessage() Message {
 	return Message{
-		ID:            GenerateMessageID(),
-		StartTime:     MessageTimestamp(),
-		Attributes:    make(map[string]string),
-		Vars:          make(map[string]string),
-		OutputToRooms: []string{},
-		OutputToUsers: []string{},
-		Debug:         false,
-		IsEphemeral:   false,
+		ID:               GenerateMessageID(),
+		StartTime:        MessageTimestamp(),
+		Attributes:       make(map[string]string),
+		Vars:             make(map[string]string),
+		OutputToChannels: []string{},
+		OutputToUsers:    []string{},
+		Debug:            false,
+		IsEphemeral:      false,
 	}
 }

@@ -16,7 +16,7 @@ schedule: '@every 5s'
 # format_output: "On this day (${date}) in the year ${year}: ${event}"
 format_output: "Hello, from Scheduler 1!"
 
-output_to_rooms:
+output_to_channels:
   - general
 
 output_to_users:

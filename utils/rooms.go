@@ -6,18 +6,18 @@ import (
 	"github.com/target/flottbot/models"
 )
 
-// GetRoomIDs helps find a room by name, if we have 'cached' it
-func GetRoomIDs(wantRooms []string, bot *models.Bot) []string {
-	rooms := []string{}
+// GetChannelIDs helps find a channel by name, if we have 'cached' it
+func GetChannelIDs(wantChannels []string, bot *models.Bot) []string {
+	channels := []string{}
 
-	for _, room := range wantRooms {
-		roomMatch := bot.Rooms[strings.ToLower(room)]
-		if len(roomMatch) > 0 {
-			rooms = append(rooms, roomMatch)
+	for _, channel := range wantChannels {
+		channelMatch := bot.Channels[strings.ToLower(channel)]
+		if len(channelMatch) > 0 {
+			channels = append(channels, channelMatch)
 		} else {
-			bot.Log.Debugf("Room '%s' does not exist", room)
+			bot.Log.Debugf("Channel '%s' does not exist", channel)
 		}
 	}
 
-	return rooms
+	return channels
 }

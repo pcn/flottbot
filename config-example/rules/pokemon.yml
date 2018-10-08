@@ -10,12 +10,12 @@ actions:
   - name: trigger message
     type: message
     message: "Looking up stats for ${name}..."
-    limit_to_rooms:
+    limit_to_channels:
       - flottbot-dev
   - name: trigger log
     type: log
     message: "Someone is searching up stats for ${name}"
-    limit_to_rooms:
+    limit_to_channels:
       - flottbot-dev2
   - name: pokemon http request
     type: GET

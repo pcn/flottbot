@@ -12,7 +12,7 @@ type Action struct {
 	Auth             []Auth                 `mapstructure:"auth"`
 	ExposeJSONFields map[string]string      `mapstructure:"expose_json_fields"`
 	Response         string                 `mapstructure:"response"`
-	LimitToRooms     []string               `mapstructure:"limit_to_rooms"`
+	LimitToChannels  []string               `mapstructure:"limit_to_channels"`
 	Message          string                 `mapstructure:"message"`
 	Reaction         string                 `mapstructure:"update_reaction" binding:"omitempty"`
 }

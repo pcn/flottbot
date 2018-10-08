@@ -38,7 +38,7 @@ actions:
 # response
 format_output: "It is ${temperature}C in ${loc} (${full_name}/${native_name}, country population: ${population})"
 direct_message_only: false
-output_to_rooms:
+output_to_channels:
   - general
 
 # help

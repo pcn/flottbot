@@ -7,30 +7,30 @@ import (
 	"github.com/target/flottbot/models"
 )
 
-func TestGetRoomIDs(t *testing.T) {
+func TestGetChannelIDs(t *testing.T) {
 	type args struct {
-		wantRooms   []string
-		activeRooms map[string]string
-		bot         *models.Bot
+		wantChannels   []string
+		activeChannels map[string]string
+		bot            *models.Bot
 	}
 
-	// For Room Exists
-	RoomExistsIn := []string{"testing", "testing-room"}
+	// For Channel Exists
+	ChannelExistsIn := []string{"testing", "testing-channel"}
 
-	RoomExistsActive := make(map[string]string)
-	RoomExistsActive["testing"] = "123"
-	RoomExistsActive["testing-room"] = "456"
+	ChannelExistsActive := make(map[string]string)
+	ChannelExistsActive["testing"] = "123"
+	ChannelExistsActive["testing-channel"] = "456"
 
-	RoomExistsWant := []string{"123", "456"}
+	ChannelExistsWant := []string{"123", "456"}
 
-	// For Room Doesn't Exist
-	RoomDoesNotExistIn := []string{"not"}
+	// For Channel Doesn't Exist
+	ChannelDoesNotExistIn := []string{"not"}
 
-	RoomDoesNotExistActive := make(map[string]string)
-	RoomDoesNotExistActive["testing"] = "123"
-	RoomDoesNotExistActive["testing-room"] = "456"
+	ChannelDoesNotExistActive := make(map[string]string)
+	ChannelDoesNotExistActive["testing"] = "123"
+	ChannelDoesNotExistActive["testing-channel"] = "456"
 
-	RoomDoesNotExistWant := []string{}
+	ChannelDoesNotExistWant := []string{}
 
 	tests := []struct {
 		name string
@@ -38,13 +38,13 @@ func TestGetRoomIDs(t *testing.T) {
 		want []string
 	}{
 		{"Basic", args{}, []string{}},
-		{"Room exists", args{wantRooms: RoomExistsIn, bot: &models.Bot{Rooms: RoomExistsActive}}, RoomExistsWant},
-		{"Room does not exist", args{wantRooms: RoomDoesNotExistIn, bot: &models.Bot{Rooms: RoomDoesNotExistActive}}, RoomDoesNotExistWant},
+		{"Channel exists", args{wantChannels: ChannelExistsIn, bot: &models.Bot{Channels: ChannelExistsActive}}, ChannelExistsWant},
+		{"Channel does not exist", args{wantChannels: ChannelDoesNotExistIn, bot: &models.Bot{Channels: ChannelDoesNotExistActive}}, ChannelDoesNotExistWant},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := GetRoomIDs(tt.args.wantRooms, tt.args.bot); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetRoomIDs() = %v, want %v", got, tt.want)
+			if got := GetChannelIDs(tt.args.wantChannels, tt.args.bot); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GetChannelIDs() = %v, want %v", got, tt.want)
 			}
 		})
 	}

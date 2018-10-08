@@ -32,11 +32,11 @@ func TestCraftResponse(t *testing.T) {
 				rule: models.Rule{
 					FormatOutput:      "test output",
 					DirectMessageOnly: true,
-					OutputToRooms:     []string{"not_a_real_room_1", "not_a_real_room_2"},
+					OutputToChannels:  []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 				},
 				msg: models.Message{
-					OutputToRooms: []string{"not_a_real_room_1", "not_a_real_room_2"},
-					Vars:          map[string]string{},
+					OutputToChannels: []string{"not_a_real_channel_1", "not_a_real_channel_2"},
+					Vars:             map[string]string{},
 				},
 				bot: testBot,
 			},
@@ -50,10 +50,10 @@ func TestCraftResponse(t *testing.T) {
 				rule: models.Rule{
 					FormatOutput:      "here is ${test_var}",
 					DirectMessageOnly: true,
-					OutputToRooms:     []string{"not_a_real_room_1", "not_a_real_room_2"},
+					OutputToChannels:  []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 				},
 				msg: models.Message{
-					OutputToRooms: []string{"not_a_real_room_1", "not_a_real_room_2"},
+					OutputToChannels: []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 					Vars: map[string]string{
 						"test_var": "some value",
 					},
@@ -69,10 +69,10 @@ func TestCraftResponse(t *testing.T) {
 				rule: models.Rule{
 					FormatOutput:      `{{ if (eq "${_test_status}" "ok") }}hello{{ else }}hi{{ end }}`,
 					DirectMessageOnly: true,
-					OutputToRooms:     []string{"not_a_real_room_1", "not_a_real_room_2"},
+					OutputToChannels:  []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 				},
 				msg: models.Message{
-					OutputToRooms: []string{"not_a_real_room_1", "not_a_real_room_2"},
+					OutputToChannels: []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 					Vars: map[string]string{
 						"_test_status": "ok",
 					},
@@ -88,10 +88,10 @@ func TestCraftResponse(t *testing.T) {
 				rule: models.Rule{
 					FormatOutput:      `{{ if (eq "${_test_status}" "ok") }}hello{{ else }}hi{{ end }}`,
 					DirectMessageOnly: true,
-					OutputToRooms:     []string{"not_a_real_room_1", "not_a_real_room_2"},
+					OutputToChannels:  []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 				},
 				msg: models.Message{
-					OutputToRooms: []string{"not_a_real_room_1", "not_a_real_room_2"},
+					OutputToChannels: []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 					Vars: map[string]string{
 						"_test_status": "not_ok",
 					},
@@ -102,16 +102,16 @@ func TestCraftResponse(t *testing.T) {
 			false,
 		},
 		{
-			"Successful craft response (none of the rooms exist and OutputToUsers empty)",
+			"Successful craft response (none of the channels exist and OutputToUsers empty)",
 			args{
 				rule: models.Rule{
 					FormatOutput:      `{{ if (eq "${_test_status}" "ok") }}hello{{ else }}hi{{ end }}`,
 					DirectMessageOnly: false,
-					OutputToRooms:     []string{"not_a_real_room_1", "not_a_real_room_2"},
+					OutputToChannels:  []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 					OutputToUsers:     []string{},
 				},
 				msg: models.Message{
-					OutputToRooms: []string{},
+					OutputToChannels: []string{},
 					Vars: map[string]string{
 						"_test_status": "not_ok",
 					},
@@ -329,54 +329,54 @@ func TestHandleMessage(t *testing.T) {
 
 	// Init test variables
 	testAction := new(models.Action)
-	testAction.LimitToRooms = []string{}
+	testAction.LimitToChannels = []string{}
 	testMsg := new(models.Message)
 	testMsg.Attributes = make(map[string]string)
-	testMsg.OutputToRooms = []string{}
-	testActiveRooms := make(map[string]string)
-	testActiveRooms["flottbot-room1"] = "12345"
-	testActiveRooms["flottbot-room2"] = "54321"
+	testMsg.OutputToChannels = []string{}
+	testActivechannels := make(map[string]string)
+	testActivechannels["flottbot-channel1"] = "12345"
+	testActivechannels["flottbot-channel2"] = "54321"
 	bot := new(models.Bot)
-	bot.Rooms = testActiveRooms
+	bot.Channels = testActivechannels
 
 	tests := []struct {
-		name              string
-		args              args
-		wantLimitToRooms  []string
-		wantOutputToRooms []string
-		wantActionMessage string
-		wantOutputMessage string
-		wantErr           bool
+		name                 string
+		args                 args
+		wantLimitTochannels  []string
+		wantOutputToChannels []string
+		wantActionMessage    string
+		wantOutputMessage    string
+		wantErr              bool
 	}{
 		{
 			"Send non-direct message",
 			args{*testAction, nil, testMsg, false, false, nil, bot},
 			[]string{},
-			[]string{"flottbot-room1", "flottbot-room2"},
+			[]string{"flottbot-channel1", "flottbot-channel2"},
 			"Message from action",
 			"Message from action",
 			false,
 		},
 		{
-			"Send direct message but limit_to_rooms is set",
+			"Send direct message but limit_to_channels is set",
 			args{*testAction, nil, testMsg, true, false, nil, bot},
-			[]string{"flottbot-room1", "flottbot-room2"},
+			[]string{"flottbot-channel1", "flottbot-channel2"},
 			[]string{},
 			"Message from action",
 			"Message from action",
 			false,
 		},
 		{
-			"Send non-direct message but limit_to_rooms is set",
+			"Send non-direct message but limit_to_channels is set",
 			args{*testAction, nil, testMsg, true, false, nil, bot},
-			[]string{"flottbot-room1", "flottbot-room2"},
+			[]string{"flottbot-channel1", "flottbot-channel2"},
 			[]string{},
 			"Message from action",
 			"Message from action",
 			false,
 		},
 		{
-			"Send non-direct message but limit_to_rooms is not set",
+			"Send non-direct message but limit_to_channels is not set",
 			args{*testAction, nil, testMsg, true, false, nil, bot},
 			[]string{},
 			[]string{},
@@ -397,7 +397,7 @@ func TestHandleMessage(t *testing.T) {
 			"Empty action message",
 			args{*testAction, nil, testMsg, false, false, nil, bot},
 			[]string{},
-			[]string{"flottbot-room1", "flottbot-room2"},
+			[]string{"flottbot-channel1", "flottbot-channel2"},
 			"",
 			"",
 			true,
@@ -406,13 +406,13 @@ func TestHandleMessage(t *testing.T) {
 			"Error on Substitute()",
 			args{*testAction, nil, testMsg, false, false, nil, bot},
 			[]string{},
-			[]string{"flottbot-room1", "flottbot-room2"},
+			[]string{"flottbot-channel1", "flottbot-channel2"},
 			"${NOT_A_REAL_VAR}",
 			"",
 			true,
 		},
 		{
-			"Rooms in limit_to_rooms don't exist",
+			"channels in limit_to_channels don't exist",
 			args{*testAction, nil, testMsg, false, false, nil, bot},
 			[]string{"test", "test2"},
 			[]string{},
@@ -426,9 +426,9 @@ func TestHandleMessage(t *testing.T) {
 			// Set test variables
 			var testOutputMsgs chan models.Message
 			var testHitRule chan models.Rule
-			tt.args.action.LimitToRooms = tt.wantLimitToRooms
+			tt.args.action.LimitToChannels = tt.wantLimitTochannels
 			tt.args.action.Message = tt.wantActionMessage
-			tt.args.msg.OutputToRooms = tt.wantOutputToRooms
+			tt.args.msg.OutputToChannels = tt.wantOutputToChannels
 			tt.args.msg.Output = tt.wantOutputMessage
 			if !tt.wantErr { // all happy paths (i.e. no errors) go here
 				testOutputMsgs = make(chan models.Message, 1)
@@ -753,13 +753,13 @@ func Test_handleSchedulerServiceRule(t *testing.T) {
 	testBot := new(models.Bot)
 
 	testRuleValid := models.Rule{
-		Schedule:      "@every 5s",
-		Name:          "TestSchedule",
-		Respond:       "foo",
-		FormatOutput:  "Hello, from Scheduler 1!",
-		Args:          []string{"arg1"},
-		Active:        true,
-		OutputToRooms: []string{"test-room1"},
+		Schedule:         "@every 5s",
+		Name:             "TestSchedule",
+		Respond:          "foo",
+		FormatOutput:     "Hello, from Scheduler 1!",
+		Args:             []string{"arg1"},
+		Active:           true,
+		OutputToChannels: []string{"test-channel1"},
 	}
 
 	testMessageValid := models.Message{

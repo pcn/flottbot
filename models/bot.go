@@ -15,7 +15,7 @@ type Bot struct {
 	DiscordToken                  string            `mapstructure:"discord_token"`
 	Users                         map[string]string `mapstructure:"slack_users"`
 	UserGroups                    map[string]string `mapstructure:"slack_usergroups"`
-	Rooms                         map[string]string `mapstructure:"slack_channels"`
+	Channels                      map[string]string `mapstructure:"slack_channels"`
 	CLI                           bool              `mapstructure:"cli,omitempty"`
 	CLIUser                       string            `mapstructure:"cli_user,omitempty"`
 	Scheduler                     bool              `mapstructure:"scheduler,omitempty"`

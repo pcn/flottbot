@@ -12,7 +12,7 @@ allow_users:
   - kelly.shmelly
 allow_usergroups:
   - flottbot-team
-output_to_rooms:
+output_to_channels:
   - general
 # help
 help_text: announce <text>

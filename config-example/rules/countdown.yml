@@ -13,7 +13,7 @@ actions:
 # response
 format_output: ":smile: Only ${_exec_output} more days! :smile:"
 direct_message_only: false
-output_to_rooms:
+output_to_channels:
   - general
 
 # help

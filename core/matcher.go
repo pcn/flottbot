@@ -225,8 +225,8 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 		}
 	}
 
-	// Match supplied room names to IDs
-	message.OutputToRooms = utils.GetRoomIDs(rule.OutputToRooms, bot)
+	// Match supplied channel names to IDs
+	message.OutputToChannels = utils.GetChannelIDs(rule.OutputToChannels, bot)
 
 	// Populate message output to users
 	message.OutputToUsers = rule.OutputToUsers
@@ -264,9 +264,9 @@ func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (strin
 		return "", errors.New("Hmm, the 'format_output' field in your configuration is empty")
 	}
 
-	// None of the rooms specified in 'output_to_rooms' exist
-	if !rule.DirectMessageOnly && len(rule.OutputToRooms) > 0 && len(msg.OutputToRooms) == 0 {
-		msg := fmt.Sprintf("Could not find any of the rooms specified in 'output_to_rooms' while 'direct_message_only' is set to false. "+
+	// None of the channels specified in 'output_to_channels' exist
+	if !rule.DirectMessageOnly && len(rule.OutputToChannels) > 0 && len(msg.OutputToChannels) == 0 {
+		msg := fmt.Sprintf("Could not find any of the channels specified in 'output_to_channels' while 'direct_message_only' is set to false. "+
 			"Please check rule '%s'", rule.Name)
 		if len(rule.OutputToUsers) == 0 {
 			return "", errors.New(msg)
@@ -274,9 +274,9 @@ func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (strin
 		bot.Log.Warn(msg)
 	}
 
-	// Simple warning that we will ignore 'output_to_rooms' when 'direct_message_only' is set
-	if rule.DirectMessageOnly && len(rule.OutputToRooms) > 0 {
-		bot.Log.Debugf("The rule '%s' has 'direct_message_only' set, 'output_to_rooms' will be ignored", rule.Name)
+	// Simple warning that we will ignore 'output_to_channels' when 'direct_message_only' is set
+	if rule.DirectMessageOnly && len(rule.OutputToChannels) > 0 {
+		bot.Log.Debugf("The rule '%s' has 'direct_message_only' set, 'output_to_channels' will be ignored", rule.Name)
 	}
 
 	// Use FormatOutput as source for output and find variables and replace content the variable exists
@@ -399,19 +399,19 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 	}
 
 	msg.Output = output
-	// Send to desired room(s)
-	if direct && len(action.LimitToRooms) > 0 { // direct=true and limit_to_rooms is specified
-		bot.Log.Debugf("You have specified to send only direct messages. The 'limit_to_rooms' field on the '%s' action will be ignored", action.Name)
-	} else if !direct && len(action.LimitToRooms) > 0 { // direct=false and limit_to_rooms is specified
-		msg.OutputToRooms = utils.GetRoomIDs(action.LimitToRooms, bot)
+	// Send to desired channel(s)
+	if direct && len(action.LimitToChannels) > 0 { // direct=true and limit_to_channels is specified
+		bot.Log.Debugf("You have specified to send only direct messages. The 'limit_to_channels' field on the '%s' action will be ignored", action.Name)
+	} else if !direct && len(action.LimitToChannels) > 0 { // direct=false and limit_to_channels is specified
+		msg.OutputToChannels = utils.GetChannelIDs(action.LimitToChannels, bot)
 
-		if len(msg.OutputToRooms) == 0 {
-			return errors.New("The rooms defined in 'limit_to_rooms' do not exist")
+		if len(msg.OutputToChannels) == 0 {
+			return errors.New("The channels defined in 'limit_to_channels' do not exist")
 		}
-	} else if !direct && len(action.LimitToRooms) == 0 { // direct=false and no limit_to_rooms is specified
-		msg.OutputToRooms = []string{msg.ChannelID}
+	} else if !direct && len(action.LimitToChannels) == 0 { // direct=false and no limit_to_channels is specified
+		msg.OutputToChannels = []string{msg.ChannelID}
 	}
-	// Else: direct=true and no limit_to_rooms is specified
+	// Else: direct=true and no limit_to_channels is specified
 
 	// Set message directive
 	msg.DirectMessageOnly = direct
