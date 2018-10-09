@@ -8,7 +8,7 @@ import (
 
 // Remote - this interface allows us to keep the bot "remote agnostic" meaning
 // that the bot should not care about what specific remote (e.g. Slack or Discord)
-// it iss reading/sending messages from. It is up to the developer to implement
+// it is reading/sending messages from. It is up to the developer to implement
 // the details of how messages should be read/sent in the specific package for
 // the remote (e.g. see '/remote/slack/remote.go')
 // Each remote will share generic functions as seen below that will be evoked

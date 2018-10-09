@@ -6,7 +6,7 @@ type Rule struct {
 	Respond            string   `mapstructure:"respond" binding:"omitempty"`
 	Hear               string   `mapstructure:"hear" binding:"omitempty"`
 	Schedule           string   `mapstructure:"schedule"`
-	Args               []string `mapstructure:"args" binding:"required"`
+	ExposeArgs         []string `mapstructure:"expose_args" binding:"required"`
 	DirectMessageOnly  bool     `mapstructure:"direct_message_only" binding:"required"`
 	OutputToChannels   []string `mapstructure:"output_to_channels" binding:"omitempty"`
 	OutputToUsers      []string `mapstructure:"output_to_users" binding:"omitempty"`

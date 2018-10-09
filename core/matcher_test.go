@@ -342,7 +342,7 @@ func TestHandleMessage(t *testing.T) {
 	tests := []struct {
 		name                 string
 		args                 args
-		wantLimitTochannels  []string
+		wantLimitToChannels  []string
 		wantOutputToChannels []string
 		wantActionMessage    string
 		wantOutputMessage    string
@@ -426,7 +426,7 @@ func TestHandleMessage(t *testing.T) {
 			// Set test variables
 			var testOutputMsgs chan models.Message
 			var testHitRule chan models.Rule
-			tt.args.action.LimitToChannels = tt.wantLimitTochannels
+			tt.args.action.LimitToChannels = tt.wantLimitToChannels
 			tt.args.action.Message = tt.wantActionMessage
 			tt.args.msg.OutputToChannels = tt.wantOutputToChannels
 			tt.args.msg.Output = tt.wantOutputMessage

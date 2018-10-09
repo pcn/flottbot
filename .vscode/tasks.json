@@ -19,6 +19,10 @@
         ],
         "linux": {
             "args": [
+                "build",
+                "-i",
+                "-gcflags",
+                "'-N -l'",
                 "-o",
                 "debug",
                 "${workspaceRoot}/cmd/flottbot/main.go"
@@ -26,6 +30,10 @@
         },
         "osx": {
             "args": [
+                "build",
+                "-i",
+                "-gcflags",
+                "'-N -l'",
                 "-o",
                 "debug",
                 "${workspaceRoot}/cmd/flottbot/main.go"
@@ -33,6 +41,7 @@
         },
         "windows": {
             "args": [
+                "build",
                 "-o",
                 "debug.exe",
                 "\"${workspaceRoot}\\cmd\\flottbot\\main.go\""

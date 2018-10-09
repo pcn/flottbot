@@ -1,4 +1,4 @@
-package scheduler
+package handlers
 
 import (
 	"fmt"
@@ -28,6 +28,7 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
 	// Wait for bot.Channels to populate (find a less hacky way to do this)
 	for {
+		// bot.Remotes["cli"]["user"].(string)
 		_nil := bot.Channels[""]
 		if len(bot.Channels) > 0 {
 			bot.Log.Debugf("Scheduler connected to %s channels%s", strings.Title(bot.ChatApplication), _nil)
