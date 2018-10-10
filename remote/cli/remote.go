@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/remote"
 	"github.com/target/flottbot/version"
 )
@@ -20,12 +20,20 @@ type Client struct {
 var _ remote.Remote = (*Client)(nil)
 
 // Reaction implementation to satisfy remote interface
-func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) Reaction(message model.Message, rule model.Rule, bot *model.Bot) {
 	// not implemented for CLI
 }
 
+func (c *Client) Channels() (*model.Channels, error) {
+	return nil, nil
+}
+
+func (c *Client) Login() (*model.BotUser, error) {
+	return nil, nil
+}
+
 // Read implementation to satisfy remote interface
-func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- model.Message, rules map[string]model.Rule, bot *model.Bot) {
 	user := bot.Remotes["cli"]["user"].(string)
 	if len(user) == 0 {
 		user = "Flottbot-CLI-User"
@@ -62,10 +70,10 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 		fmt.Print("\n", bot.Name, "> ")
 		req := scanner.Text()
 		if len(strings.TrimSpace(req)) > 0 {
-			message := models.NewMessage()
+			message := model.NewMessage()
 
-			message.Type = models.MsgTypeDirect
-			message.Service = models.MsgServiceCLI
+			message.Type = model.MsgTypeDirect
+			message.Service = model.MsgServiceCLI
 			message.Input = req
 
 			message.Vars["_user.id"] = user
@@ -80,7 +88,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 }
 
 // Send implementation to satisfy remote interface
-func (c *Client) Send(message models.Message, bot *models.Bot) {
+func (c *Client) Send(message model.Message, bot *model.Bot) {
 	w := bufio.NewWriter(os.Stdout)
 	var re = regexp.MustCompile(`(?m)^(.*)`)
 	var substitution = fmt.Sprintf(`%s> $1`, bot.Name)
@@ -89,6 +97,6 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 }
 
 // InteractiveComponents implementation to satisfy remote interface
-func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) InteractiveComponents(inputMsgs chan<- model.Message, message *model.Message, rule model.Rule, bot *model.Bot) {
 	// not implemented for CLI
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/target/flottbot/core"
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/version"
 )
 
@@ -25,7 +25,7 @@ func init() {
 	}
 }
 
-func newBot() *models.Bot {
+func newBot() *model.Bot {
 	bot := viper.New()
 	bot.AddConfigPath("./config")
 	bot.AddConfigPath(".")
@@ -35,7 +35,7 @@ func newBot() *models.Bot {
 		log.Fatalf("Fatal error config file: %s \n", err)
 	}
 
-	var botC models.Bot
+	var botC model.Bot
 	err = bot.Unmarshal(&botC)
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -44,10 +44,10 @@ func newBot() *models.Bot {
 }
 
 func main() {
-	var rules = make(map[string]models.Rule)
-	var hitRule = make(chan models.Rule, 1)
-	var inputMsgs = make(chan models.Message, 1)
-	var outputMsgs = make(chan models.Message, 1)
+	var rules = make(map[string]model.Rule)
+	var hitRule = make(chan model.Rule, 1)
+	var inputMsgs = make(chan model.Message, 1)
+	var outputMsgs = make(chan model.Message, 1)
 
 	// Configure the bot to the core framework
 	bot := newBot()

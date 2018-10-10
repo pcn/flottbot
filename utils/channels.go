@@ -3,11 +3,11 @@ package utils
 import (
 	"strings"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 )
 
 // GetChannelIDs helps find a channel by name, if we have 'cached' it
-func GetChannelIDs(wantChannels []string, bot *models.Bot) []string {
+func GetChannelIDs(wantChannels []string, bot *model.Bot) []string {
 	channels := []string{}
 
 	for _, channel := range wantChannels {

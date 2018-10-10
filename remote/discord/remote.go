@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/remote"
 )
 
@@ -32,13 +32,21 @@ func (c *Client) new() *discordgo.Session {
 	return dg
 }
 
+func (c *Client) Channels() (*model.Channels, error) {
+	return nil, nil
+}
+
+func (c *Client) Login() (*model.BotUser, error) {
+	return nil, nil
+}
+
 // Reaction implementation to satisfy remote interface
-func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) Reaction(message model.Message, rule model.Rule, bot *model.Bot) {
 	// TODO: add ability to react to messages with emojis
 }
 
 // Read implementation to satisfy remote interface
-func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- model.Message, rules map[string]model.Rule, bot *model.Bot) {
 	dg := c.new()
 	if dg == nil {
 		bot.Log.Error("Failed to initialize Discord client")
@@ -65,10 +73,10 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 }
 
 // Send implementation to satisfy remote interface
-func (c *Client) Send(message models.Message, bot *models.Bot) {
+func (c *Client) Send(message model.Message, bot *model.Bot) {
 	dg := c.new()
 	switch message.Type {
-	case models.MsgTypeDirect, models.MsgTypeChannel:
+	case model.MsgTypeDirect, model.MsgTypeChannel:
 		dg.ChannelMessageSend(message.ChannelID, message.Output)
 	default:
 		bot.Log.Errorf("Unable to send message of type %d", message.Type)
@@ -76,13 +84,13 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 }
 
 // InteractiveComponents implementation to satisfy remote interface
-func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) InteractiveComponents(inputMsgs chan<- model.Message, message *model.Message, rule model.Rule, bot *model.Bot) {
 	// not implemented for Discord
 }
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to
-func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) interface{} {
+func handleDiscordMessage(bot *model.Bot, inputMsgs chan<- model.Message) interface{} {
 	return func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// Ignore all messages created by the bot itself
 		// This isn't required in this specific example but it's a good practice
@@ -103,7 +111,7 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 			}
 		}
 		// Process message
-		message := models.NewMessage()
+		message := model.NewMessage()
 		switch m.Type {
 		case discordgo.MessageTypeDefault:
 			t, err := m.Timestamp.Parse()
@@ -111,10 +119,10 @@ func handleDiscordMessage(bot *models.Bot, inputMsgs chan<- models.Message) inte
 				bot.Log.Errorf("Discord Remote: Failed to parse message timestamp.")
 			}
 			timestamp := strconv.FormatInt(t.Unix(), 10)
-			msgType := models.MsgTypeChannel
+			msgType := model.MsgTypeChannel
 			switch ch.Type {
 			case discordgo.ChannelTypeDM:
-				msgType = models.MsgTypeDirect
+				msgType = model.MsgTypeDirect
 			case discordgo.ChannelTypeGuildText:
 				break
 			default:

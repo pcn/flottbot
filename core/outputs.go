@@ -3,7 +3,7 @@ package core
 import (
 	"strings"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/remote/cli"
 	"github.com/target/flottbot/remote/discord"
 	"github.com/target/flottbot/remote/slack"
@@ -11,7 +11,7 @@ import (
 
 // Outputs determines where messages are output based on fields set in the bot.yml
 // TODO: Refactor to keep remote specifics in remote/
-func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *models.Bot) {
+func Outputs(outputMsgs <-chan model.Message, hitRule <-chan model.Rule, bot *model.Bot) {
 	remoteCLI := &cli.Client{}
 	remoteDiscord := &discord.Client{}
 	remoteSlack := &slack.Client{}
@@ -20,11 +20,11 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 		rule := <-hitRule
 		service := message.Service
 		switch service {
-		case models.MsgServiceChat, models.MsgServiceScheduler:
+		case model.MsgServiceChat, model.MsgServiceScheduler:
 			chatApp := strings.ToLower(bot.ChatApplication)
 			switch chatApp {
 			case "discord":
-				if service == models.MsgServiceScheduler {
+				if service == model.MsgServiceScheduler {
 					bot.Log.Warn("Scheduler does not currently support Discord")
 					break
 				}
@@ -37,7 +37,7 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 					VerificationToken: bot.SlackVerificationToken,
 					WorkspaceToken:    bot.SlackWorkspaceToken,
 				}
-				if service == models.MsgServiceChat {
+				if service == model.MsgServiceChat {
 					if bot.InteractiveComponents {
 						remoteSlack.InteractiveComponents(nil, &message, rule, bot)
 					}
@@ -47,9 +47,9 @@ func Outputs(outputMsgs <-chan models.Message, hitRule <-chan models.Rule, bot *
 			default:
 				bot.Log.Debugf("Chat application %s is not supported", chatApp)
 			}
-		case models.MsgServiceCLI:
+		case model.MsgServiceCLI:
 			remoteCLI.Send(message, bot)
-		case models.MsgServiceUnknown:
+		case model.MsgServiceUnknown:
 			bot.Log.Error("Found unknown service")
 		default:
 			bot.Log.Errorf("No service found")

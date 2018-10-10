@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 )
 
 func Test_extractFields(t *testing.T) {
@@ -43,8 +43,8 @@ func Test_extractFields(t *testing.T) {
 
 func TestHTTPReq(t *testing.T) {
 	type args struct {
-		args models.Action
-		msg  *models.Message
+		args model.Action
+		msg  *model.Message
 	}
 
 	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -66,41 +66,41 @@ func TestHTTPReq(t *testing.T) {
 	customQueryDataWithVars := make(map[string]interface{})
 	customQueryDataWithVars["testQuery"] = "${test}"
 
-	TestMessage := models.NewMessage()
+	TestMessage := model.NewMessage()
 	TestMessage.Vars["testValues"] = "test"
 
-	TestGETAction := models.Action{
+	TestGETAction := model.Action{
 		Name:          "Test Action",
 		Type:          "GET",
 		URL:           tsOK.URL,
 		CustomHeaders: customHeader,
 		QueryData:     customQueryData,
 	}
-	TestPOSTAction := models.Action{
+	TestPOSTAction := model.Action{
 		Name:          "Test Action",
 		Type:          "POST",
 		URL:           tsOK.URL,
 		CustomHeaders: customHeader,
 		QueryData:     customQueryData,
 	}
-	TestEmptyQueryAction := models.Action{
+	TestEmptyQueryAction := model.Action{
 		Name:          "Test Action",
 		Type:          "GET",
 		URL:           tsOK.URL,
 		CustomHeaders: customHeader,
 	}
-	TestErrorResponseAction := models.Action{
+	TestErrorResponseAction := model.Action{
 		Name: "Test Action",
 		Type: "GET",
 		URL:  tsError.URL,
 	}
-	TestQueryWithSubsAction := models.Action{
+	TestQueryWithSubsAction := model.Action{
 		Name:      "Test Action",
 		Type:      "GET",
 		URL:       tsOK.URL,
 		QueryData: customQueryDataWithVars,
 	}
-	TestWithError := models.Action{
+	TestWithError := model.Action{
 		Name: "Error Case",
 		Type: "GET",
 		URL:  "/%zz",
@@ -109,13 +109,13 @@ func TestHTTPReq(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *models.HTTPResponse
+		want    *model.HTTPResponse
 		wantErr bool
 	}{
-		{"HTTPReq GET", args{args: TestGETAction, msg: &TestMessage}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
-		{"HTTPReq POST", args{args: TestPOSTAction, msg: &TestMessage}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
-		{"HTTPReq No Query", args{args: TestEmptyQueryAction, msg: &TestMessage}, &models.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
-		{"HTTPReq Error Response", args{args: TestErrorResponseAction, msg: &TestMessage}, &models.HTTPResponse{Status: 502, Raw: "", Data: ""}, false},
+		{"HTTPReq GET", args{args: TestGETAction, msg: &TestMessage}, &model.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
+		{"HTTPReq POST", args{args: TestPOSTAction, msg: &TestMessage}, &model.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
+		{"HTTPReq No Query", args{args: TestEmptyQueryAction, msg: &TestMessage}, &model.HTTPResponse{Status: 200, Raw: "", Data: ""}, false},
+		{"HTTPReq Error Response", args{args: TestErrorResponseAction, msg: &TestMessage}, &model.HTTPResponse{Status: 502, Raw: "", Data: ""}, false},
 		{"HTTPReq with Sub", args{args: TestQueryWithSubsAction, msg: &TestMessage}, nil, true},
 		{"HTTPReq with Error", args{args: TestWithError, msg: &TestMessage}, nil, true},
 	}
@@ -138,7 +138,7 @@ func Test_prepRequestData(t *testing.T) {
 		url        string
 		actionType string
 		data       map[string]interface{}
-		msg        *models.Message
+		msg        *model.Message
 	}
 	tests := []struct {
 		name    string
@@ -169,7 +169,7 @@ func Test_prepRequestData(t *testing.T) {
 func Test_createGetQuery(t *testing.T) {
 	type args struct {
 		data map[string]interface{}
-		msg  *models.Message
+		msg  *model.Message
 	}
 
 	tests := []struct {
@@ -178,10 +178,10 @@ func Test_createGetQuery(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{"Simple Query", args{data: map[string]interface{}{"foo": "bar"}, msg: new(models.Message)}, "foo=bar", false},
-		{"Query with Spaces", args{data: map[string]interface{}{"foo": "bar foo"}, msg: new(models.Message)}, `foo=bar%20foo`, false},
-		{"Query with Plus", args{data: map[string]interface{}{"foo": "bar+foo"}, msg: new(models.Message)}, `foo=bar%2Bfoo`, false},
-		{"Empty", args{data: make(map[string]interface{}), msg: new(models.Message)}, "", false},
+		{"Simple Query", args{data: map[string]interface{}{"foo": "bar"}, msg: new(model.Message)}, "foo=bar", false},
+		{"Query with Spaces", args{data: map[string]interface{}{"foo": "bar foo"}, msg: new(model.Message)}, `foo=bar%20foo`, false},
+		{"Query with Plus", args{data: map[string]interface{}{"foo": "bar+foo"}, msg: new(model.Message)}, `foo=bar%2Bfoo`, false},
+		{"Empty", args{data: make(map[string]interface{}), msg: new(model.Message)}, "", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -200,10 +200,10 @@ func Test_createGetQuery(t *testing.T) {
 func Test_createJSONPayload(t *testing.T) {
 	type args struct {
 		data map[string]interface{}
-		msg  *models.Message
+		msg  *model.Message
 	}
 
-	testMsg := new(models.Message)
+	testMsg := new(model.Message)
 	testData := make(map[string]interface{})
 
 	// map[attachments:map[text:And here's an attachment!] channel:C9816S0B1 text:I am a test message http://slack.com]

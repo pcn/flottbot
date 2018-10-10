@@ -4,14 +4,14 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 )
 
 func TestGetChannelIDs(t *testing.T) {
 	type args struct {
 		wantChannels   []string
 		activeChannels map[string]string
-		bot            *models.Bot
+		bot            *model.Bot
 	}
 
 	// For Channel Exists
@@ -38,8 +38,8 @@ func TestGetChannelIDs(t *testing.T) {
 		want []string
 	}{
 		{"Basic", args{}, []string{}},
-		{"Channel exists", args{wantChannels: ChannelExistsIn, bot: &models.Bot{Channels: ChannelExistsActive}}, ChannelExistsWant},
-		{"Channel does not exist", args{wantChannels: ChannelDoesNotExistIn, bot: &models.Bot{Channels: ChannelDoesNotExistActive}}, ChannelDoesNotExistWant},
+		{"Channel exists", args{wantChannels: ChannelExistsIn, bot: &model.Bot{Channels: ChannelExistsActive}}, ChannelExistsWant},
+		{"Channel does not exist", args{wantChannels: ChannelDoesNotExistIn, bot: &model.Bot{Channels: ChannelDoesNotExistActive}}, ChannelDoesNotExistWant},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

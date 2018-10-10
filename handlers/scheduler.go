@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/robfig/cron"
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/remote"
 )
 
@@ -18,14 +18,14 @@ type Client struct {
 var _ remote.Remote = (*Client)(nil)
 
 // Reaction implementation to satisfy remote interface
-func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) Reaction(message model.Message, rule model.Rule, bot *model.Bot) {
 	// not implemented for Scheduler
 }
 
 // Read implementation to satisfy remote interface
 // This will read in schedule type rules from the rules map and create cronjobs that will
 // trigger messages to be sent for processing to the Matcher function via 'inputMsgs' channel.
-func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- model.Message, rules map[string]model.Rule, bot *model.Bot) {
 	// Wait for bot.Channels to populate (find a less hacky way to do this)
 	for {
 		// bot.Remotes["cli"]["user"].(string)
@@ -63,11 +63,11 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 			outputUsers := rule.OutputToUsers
 			cron.AddFunc(rule.Schedule, func() {
 				// Build message
-				message := models.NewMessage()
-				message.Service = models.MsgServiceScheduler
+				message := model.NewMessage()
+				message.Service = model.MsgServiceScheduler
 				message.Input = input // send message as self
 				message.Attributes["from_schedule"] = scheduleName
-				message.Type = models.MsgTypeChannel
+				message.Type = model.MsgTypeChannel
 				message.OutputToChannels = outputChannels
 				message.OutputToUsers = outputUsers
 				inputMsgs <- message
@@ -85,17 +85,17 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 }
 
 // Send implementation to satisfy remote interface
-func (c *Client) Send(message models.Message, bot *models.Bot) {
+func (c *Client) Send(message model.Message, bot *model.Bot) {
 	// not implemented for Scheduler
 }
 
 // InteractiveComponents implementation to satisfy remote interface
-func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) InteractiveComponents(inputMsgs chan<- model.Message, message *model.Message, rule model.Rule, bot *model.Bot) {
 	// not implemented for Scheduler
 }
 
 // Process the Cron jobs
-func processJobs(jobs []*cron.Cron, bot *models.Bot) {
+func processJobs(jobs []*cron.Cron, bot *model.Bot) {
 	// Create wait group for cron jobs and execute them
 	wg := &sync.WaitGroup{}
 	wg.Add(len(jobs))

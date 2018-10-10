@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 )
 
 var promRouter *mux.Router
@@ -21,7 +21,7 @@ var (
 )
 
 // Prommetric creates a local Prometheus server to rule metrics
-func Prommetric(input string, bot *models.Bot) {
+func Prommetric(input string, bot *model.Bot) {
 	if bot.Metrics {
 		if input == "init" {
 			// init router

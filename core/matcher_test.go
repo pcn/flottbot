@@ -7,18 +7,18 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 )
 
 func TestCraftResponse(t *testing.T) {
 	type args struct {
-		rule models.Rule
-		msg  models.Message
-		bot  *models.Bot
+		rule model.Rule
+		msg  model.Message
+		bot  *model.Bot
 	}
 
 	// Init test variables
-	testBot := new(models.Bot)
+	testBot := new(model.Bot)
 
 	tests := []struct {
 		name       string
@@ -29,12 +29,12 @@ func TestCraftResponse(t *testing.T) {
 		{
 			"Successful craft response (no templates, no var substitution)",
 			args{
-				rule: models.Rule{
+				rule: model.Rule{
 					FormatOutput:      "test output",
 					DirectMessageOnly: true,
 					OutputToChannels:  []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 				},
-				msg: models.Message{
+				msg: model.Message{
 					OutputToChannels: []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 					Vars:             map[string]string{},
 				},
@@ -43,16 +43,16 @@ func TestCraftResponse(t *testing.T) {
 			"test output",
 			false,
 		},
-		{"Empty rule format output", args{rule: models.Rule{FormatOutput: ""}, msg: models.Message{}, bot: testBot}, "test output", true},
+		{"Empty rule format output", args{rule: model.Rule{FormatOutput: ""}, msg: model.Message{}, bot: testBot}, "test output", true},
 		{
 			"Successful craft response (no templates, with var substitution)",
 			args{
-				rule: models.Rule{
+				rule: model.Rule{
 					FormatOutput:      "here is ${test_var}",
 					DirectMessageOnly: true,
 					OutputToChannels:  []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 				},
-				msg: models.Message{
+				msg: model.Message{
 					OutputToChannels: []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 					Vars: map[string]string{
 						"test_var": "some value",
@@ -66,12 +66,12 @@ func TestCraftResponse(t *testing.T) {
 		{
 			"Successful craft response (with templates, with var substitution)",
 			args{
-				rule: models.Rule{
+				rule: model.Rule{
 					FormatOutput:      `{{ if (eq "${_test_status}" "ok") }}hello{{ else }}hi{{ end }}`,
 					DirectMessageOnly: true,
 					OutputToChannels:  []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 				},
-				msg: models.Message{
+				msg: model.Message{
 					OutputToChannels: []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 					Vars: map[string]string{
 						"_test_status": "ok",
@@ -85,12 +85,12 @@ func TestCraftResponse(t *testing.T) {
 		{
 			"Successful craft response (with templates, with var substitution)",
 			args{
-				rule: models.Rule{
+				rule: model.Rule{
 					FormatOutput:      `{{ if (eq "${_test_status}" "ok") }}hello{{ else }}hi{{ end }}`,
 					DirectMessageOnly: true,
 					OutputToChannels:  []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 				},
-				msg: models.Message{
+				msg: model.Message{
 					OutputToChannels: []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 					Vars: map[string]string{
 						"_test_status": "not_ok",
@@ -104,13 +104,13 @@ func TestCraftResponse(t *testing.T) {
 		{
 			"Successful craft response (none of the channels exist and OutputToUsers empty)",
 			args{
-				rule: models.Rule{
+				rule: model.Rule{
 					FormatOutput:      `{{ if (eq "${_test_status}" "ok") }}hello{{ else }}hi{{ end }}`,
 					DirectMessageOnly: false,
 					OutputToChannels:  []string{"not_a_real_channel_1", "not_a_real_channel_2"},
 					OutputToUsers:     []string{},
 				},
-				msg: models.Message{
+				msg: model.Message{
 					OutputToChannels: []string{},
 					Vars: map[string]string{
 						"_test_status": "not_ok",
@@ -140,41 +140,41 @@ func TestCraftResponse(t *testing.T) {
 
 func TestHandleExec(t *testing.T) {
 	type args struct {
-		action models.Action
-		msg    *models.Message
-		bot    *models.Bot
+		action model.Action
+		msg    *model.Message
+		bot    *model.Bot
 	}
 
 	// Init test variables
-	bot := new(models.Bot)
+	bot := new(model.Bot)
 
-	testScriptMessage := models.NewMessage()
+	testScriptMessage := model.NewMessage()
 	testScriptMessage.Vars["test"] = "echo"
 
-	testScriptAction := models.Action{
+	testScriptAction := model.Action{
 		Name: "Test",
 		Type: "exec",
 		Cmd:  `echo "hi there"`,
 	}
 
-	testPassScriptResponse := models.ScriptResponse{
+	testPassScriptResponse := model.ScriptResponse{
 		Status: 0,
 		Output: "hi there",
 	}
 
-	testSlowScriptAction := models.Action{
+	testSlowScriptAction := model.Action{
 		Name:    "Test",
 		Type:    "exec",
 		Cmd:     `sleep 5`,
 		Timeout: 2,
 	}
 
-	testFailScriptResponse := models.ScriptResponse{
+	testFailScriptResponse := model.ScriptResponse{
 		Status: 1,
 		Output: "Hmm, something timed out. Please try again",
 	}
 
-	testNoCmdScriptAction := models.Action{
+	testNoCmdScriptAction := model.Action{
 		Name: "Test",
 		Type: "exec",
 		Cmd:  ``,
@@ -183,7 +183,7 @@ func TestHandleExec(t *testing.T) {
 	tests := []struct {
 		name               string
 		args               args
-		wantScriptResponse *models.ScriptResponse
+		wantScriptResponse *model.ScriptResponse
 		wantErr            bool
 	}{
 		{"Test echo script", args{action: testScriptAction, msg: &testScriptMessage, bot: bot}, &testPassScriptResponse, false},
@@ -211,13 +211,13 @@ func TestHandleExec(t *testing.T) {
 
 func TestHandleHTTP(t *testing.T) {
 	type args struct {
-		action models.Action
-		msg    *models.Message
-		bot    *models.Bot
+		action model.Action
+		msg    *model.Message
+		bot    *model.Bot
 	}
 
 	// Init test variables
-	bot := new(models.Bot)
+	bot := new(model.Bot)
 
 	tsOK := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -246,22 +246,22 @@ func TestHandleHTTP(t *testing.T) {
 	customJSONFields := make(map[string]string)
 	customJSONFields["var"] = ".test"
 
-	testMsg := models.NewMessage()
+	testMsg := model.NewMessage()
 	testMsg.Vars["testValues"] = "test"
 
-	TestEmptyURLAction := models.Action{
+	TestEmptyURLAction := model.Action{
 		Name: "Test Action",
 		Type: "GET",
 		URL:  "",
 	}
 
-	TestErrorResponseAction := models.Action{
+	TestErrorResponseAction := model.Action{
 		Name: "Test Action",
 		Type: "GET",
 		URL:  tsError.URL,
 	}
 
-	TestGETAction := models.Action{
+	TestGETAction := model.Action{
 		Name:          "Test Action",
 		Type:          "GET",
 		URL:           tsOK.URL,
@@ -269,7 +269,7 @@ func TestHandleHTTP(t *testing.T) {
 		QueryData:     customQueryData,
 	}
 
-	TestGETActionWithJSON := models.Action{
+	TestGETActionWithJSON := model.Action{
 		Name:             "Test Action",
 		Type:             "GET",
 		URL:              tsOKJSON.URL,
@@ -281,16 +281,16 @@ func TestHandleHTTP(t *testing.T) {
 	tests := []struct {
 		name         string
 		args         args
-		wantResponse *models.HTTPResponse
+		wantResponse *model.HTTPResponse
 		wantErr      bool
 	}{
-		{"No URL", args{action: TestEmptyURLAction, msg: &testMsg, bot: bot}, &models.HTTPResponse{}, true},
-		{"HTTP GET 200", args{action: TestGETAction, msg: &testMsg, bot: bot}, &models.HTTPResponse{Status: 200, Raw: "hello", Data: ""}, false},
-		{"HTTP GET 404", args{action: TestErrorResponseAction, msg: &testMsg, bot: bot}, &models.HTTPResponse{Status: 404, Raw: "not found", Data: ""}, false},
+		{"No URL", args{action: TestEmptyURLAction, msg: &testMsg, bot: bot}, &model.HTTPResponse{}, true},
+		{"HTTP GET 200", args{action: TestGETAction, msg: &testMsg, bot: bot}, &model.HTTPResponse{Status: 200, Raw: "hello", Data: ""}, false},
+		{"HTTP GET 404", args{action: TestErrorResponseAction, msg: &testMsg, bot: bot}, &model.HTTPResponse{Status: 404, Raw: "not found", Data: ""}, false},
 		{
 			"HTTP GET 200 JSON",
 			args{action: TestGETActionWithJSON, msg: &testMsg, bot: bot},
-			&models.HTTPResponse{
+			&model.HTTPResponse{
 				Status: 200,
 				Raw:    `{"test": "value"}`,
 				Data:   ""},
@@ -318,25 +318,25 @@ func TestHandleHTTP(t *testing.T) {
 
 func TestHandleMessage(t *testing.T) {
 	type args struct {
-		action         models.Action
-		outputMsgs     chan<- models.Message
-		msg            *models.Message
+		action         model.Action
+		outputMsgs     chan<- model.Message
+		msg            *model.Message
 		direct         bool
 		startMsgThread bool
-		hitRule        chan<- models.Rule
-		bot            *models.Bot
+		hitRule        chan<- model.Rule
+		bot            *model.Bot
 	}
 
 	// Init test variables
-	testAction := new(models.Action)
+	testAction := new(model.Action)
 	testAction.LimitToChannels = []string{}
-	testMsg := new(models.Message)
+	testMsg := new(model.Message)
 	testMsg.Attributes = make(map[string]string)
 	testMsg.OutputToChannels = []string{}
 	testActivechannels := make(map[string]string)
 	testActivechannels["flottbot-channel1"] = "12345"
 	testActivechannels["flottbot-channel2"] = "54321"
-	bot := new(models.Bot)
+	bot := new(model.Bot)
 	bot.Channels = testActivechannels
 
 	tests := []struct {
@@ -424,15 +424,15 @@ func TestHandleMessage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set test variables
-			var testOutputMsgs chan models.Message
-			var testHitRule chan models.Rule
+			var testOutputMsgs chan model.Message
+			var testHitRule chan model.Rule
 			tt.args.action.LimitToChannels = tt.wantLimitToChannels
 			tt.args.action.Message = tt.wantActionMessage
 			tt.args.msg.OutputToChannels = tt.wantOutputToChannels
 			tt.args.msg.Output = tt.wantOutputMessage
 			if !tt.wantErr { // all happy paths (i.e. no errors) go here
-				testOutputMsgs = make(chan models.Message, 1)
-				testHitRule = make(chan models.Rule, 1)
+				testOutputMsgs = make(chan model.Message, 1)
+				testHitRule = make(chan model.Rule, 1)
 				tt.args.outputMsgs = testOutputMsgs
 				tt.args.hitRule = testHitRule
 			}
@@ -455,17 +455,17 @@ func TestHandleMessage(t *testing.T) {
 
 func TestHandleReaction(t *testing.T) {
 	type args struct {
-		outputMsgs chan<- models.Message
-		msg        *models.Message
-		hitRule    chan<- models.Rule
-		rule       models.Rule
+		outputMsgs chan<- model.Message
+		msg        *model.Message
+		hitRule    chan<- model.Rule
+		rule       model.Rule
 	}
 
 	// Init test variables
-	testOutputMsgs := make(chan models.Message, 1)
-	testHitRule := make(chan models.Rule, 1)
-	testMsg := new(models.Message)
-	testRule := new(models.Rule)
+	testOutputMsgs := make(chan model.Message, 1)
+	testHitRule := make(chan model.Rule, 1)
+	testMsg := new(model.Message)
+	testRule := new(model.Rule)
 
 	test := struct {
 		name         string
@@ -497,17 +497,17 @@ func TestHandleReaction(t *testing.T) {
 
 func TestUpdateReaction(t *testing.T) {
 	type args struct {
-		action models.Action
-		rule   *models.Rule
+		action model.Action
+		rule   *model.Rule
 		vars   map[string]string
-		bot    *models.Bot
+		bot    *model.Bot
 	}
 
 	// Init test args
-	testAction := new(models.Action)
-	testRule := new(models.Rule)
+	testAction := new(model.Action)
+	testRule := new(model.Rule)
 	testVars := make(map[string]string)
-	bot := new(models.Bot)
+	bot := new(model.Bot)
 
 	// Set test variables
 	testHTTPStatusTemplate := `
@@ -592,45 +592,45 @@ func Test_getProccessedInputAndHitValue(t *testing.T) {
 
 func Test_isValidHitChatRule(t *testing.T) {
 	type args struct {
-		message        *models.Message
-		rule           models.Rule
+		message        *model.Message
+		rule           model.Rule
 		processedInput string
-		bot            *models.Bot
+		bot            *model.Bot
 	}
 
-	testBot := new(models.Bot)
-	testRule := models.Rule{}
-	testMessage := new(models.Message)
+	testBot := new(model.Bot)
+	testRule := model.Rule{}
+	testMessage := new(model.Message)
 	happyVars := make(map[string]string)
 	happyVars["_user.name"] = "fooUser"
 	testMessage.Vars = happyVars
 
-	testRuleFail := models.Rule{}
+	testRuleFail := model.Rule{}
 	testRuleFail.AllowUsers = []string{"barUser"}
-	testMessageFail := new(models.Message)
+	testMessageFail := new(model.Message)
 	failVars := make(map[string]string)
 	failVars["_user.name"] = "fooUser"
 	testMessageFail.Vars = failVars
 
-	testRuleUserAllowed := models.Rule{}
+	testRuleUserAllowed := model.Rule{}
 	testRuleUserAllowed.AllowUsers = []string{"fooUser"}
-	testMessageUserAllowed := new(models.Message)
+	testMessageUserAllowed := new(model.Message)
 	userAllowedVars := make(map[string]string)
 	userAllowedVars["_user.name"] = "fooUser"
 	testMessageUserAllowed.Vars = userAllowedVars
 
-	testRuleNeedArg := models.Rule{}
+	testRuleNeedArg := model.Rule{}
 	testRuleNeedArg.AllowUsers = []string{"fooUser"}
 	testRuleNeedArg.Args = []string{"arg1", "arg2"}
-	testMessageNeedArg := new(models.Message)
+	testMessageNeedArg := new(model.Message)
 	needArgVars := make(map[string]string)
 	needArgVars["_user.name"] = "fooUser"
 	testMessageNeedArg.Vars = needArgVars
 
-	testRuleArgs := models.Rule{}
+	testRuleArgs := model.Rule{}
 	testRuleArgs.AllowUsers = []string{"fooUser"}
 	testRuleArgs.Args = []string{"arg1", "arg2"}
-	testMessageArgs := new(models.Message)
+	testMessageArgs := new(model.Message)
 	argsVars := make(map[string]string)
 	argsVars["_user.name"] = "fooUser"
 	testMessageArgs.Vars = argsVars
@@ -657,39 +657,39 @@ func Test_isValidHitChatRule(t *testing.T) {
 
 func Test_handleChatServiceRule(t *testing.T) {
 	type args struct {
-		outputMsgs     chan<- models.Message
-		message        models.Message
-		hitRule        chan<- models.Rule
-		rule           models.Rule
+		outputMsgs     chan<- model.Message
+		message        model.Message
+		hitRule        chan<- model.Rule
+		rule           model.Rule
 		processedInput string
 		hit            bool
-		bot            *models.Bot
+		bot            *model.Bot
 	}
 
-	rule := models.Rule{
+	rule := model.Rule{
 		Name:     "Test Rule",
 		Respond:  "foo",
 		Args:     []string{"arg1", "arg2"},
 		HelpText: "foo <arg1> <arg2>",
 	}
 
-	testBot := new(models.Bot)
+	testBot := new(model.Bot)
 	testBot.Name = "Testbot"
 
-	testMessage := models.Message{
+	testMessage := model.Message{
 		Input:        "foo arg1 arg2",
 		Vars:         map[string]string{},
 		Attributes:   map[string]string{},
 		BotMentioned: true,
 	}
 
-	testMessageBotNotMentioned := models.Message{
+	testMessageBotNotMentioned := model.Message{
 		Input:      "foo arg1 arg2",
 		Vars:       map[string]string{},
 		Attributes: map[string]string{},
 	}
 
-	testMessageNotEnoughArgs := models.Message{
+	testMessageNotEnoughArgs := model.Message{
 		Input:        "foo arg1",
 		Vars:         map[string]string{},
 		BotMentioned: true,
@@ -711,8 +711,8 @@ func Test_handleChatServiceRule(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			testOutput := make(chan models.Message, 1)
-			testHitRule := make(chan models.Rule, 1)
+			testOutput := make(chan model.Message, 1)
+			testHitRule := make(chan model.Rule, 1)
 			tt.args.hitRule = testHitRule
 			tt.args.outputMsgs = testOutput
 
@@ -743,16 +743,16 @@ func Test_handleChatServiceRule(t *testing.T) {
 
 func Test_handleSchedulerServiceRule(t *testing.T) {
 	type args struct {
-		outputMsgs chan<- models.Message
-		message    models.Message
-		hitRule    chan<- models.Rule
-		rule       models.Rule
-		bot        *models.Bot
+		outputMsgs chan<- model.Message
+		message    model.Message
+		hitRule    chan<- model.Rule
+		rule       model.Rule
+		bot        *model.Bot
 	}
 
-	testBot := new(models.Bot)
+	testBot := new(model.Bot)
 
-	testRuleValid := models.Rule{
+	testRuleValid := model.Rule{
 		Schedule:         "@every 5s",
 		Name:             "TestSchedule",
 		Respond:          "foo",
@@ -762,7 +762,7 @@ func Test_handleSchedulerServiceRule(t *testing.T) {
 		OutputToChannels: []string{"test-channel1"},
 	}
 
-	testMessageValid := models.Message{
+	testMessageValid := model.Message{
 		Attributes: map[string]string{"from_schedule": "TestSchedule"},
 		Input:      "foo arg1",
 	}
@@ -791,19 +791,19 @@ func Test_handleSchedulerServiceRule(t *testing.T) {
 
 func Test_handleNoMatch(t *testing.T) {
 	type args struct {
-		outputMsgs chan<- models.Message
-		message    models.Message
-		hitRule    chan<- models.Rule
-		rules      map[string]models.Rule
-		bot        *models.Bot
+		outputMsgs chan<- model.Message
+		message    model.Message
+		hitRule    chan<- model.Rule
+		rules      map[string]model.Rule
+		bot        *model.Bot
 	}
 
-	testBot := new(models.Bot)
-	testMessage := models.Message{
+	testBot := new(model.Bot)
+	testMessage := model.Message{
 		BotMentioned: true,
 	}
 
-	testRules := map[string]models.Rule{
+	testRules := map[string]model.Rule{
 		"test": {
 			Name:          "testRule",
 			Active:        true,
@@ -812,7 +812,7 @@ func Test_handleNoMatch(t *testing.T) {
 		},
 	}
 
-	testBotCustomHelp := new(models.Bot)
+	testBotCustomHelp := new(model.Bot)
 	testBotCustomHelp.CustomHelpText = "This is help, foo. \n"
 
 	tests := []struct {
@@ -827,8 +827,8 @@ func Test_handleNoMatch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			testOutput := make(chan models.Message, 1)
-			testHitRule := make(chan models.Rule, 1)
+			testOutput := make(chan model.Message, 1)
+			testHitRule := make(chan model.Rule, 1)
 			tt.args.outputMsgs = testOutput
 			tt.args.hitRule = testHitRule
 
@@ -843,58 +843,58 @@ func Test_handleNoMatch(t *testing.T) {
 
 func Test_doRuleActions(t *testing.T) {
 	type args struct {
-		message    models.Message
-		outputMsgs chan<- models.Message
-		rule       models.Rule
-		hitRule    chan<- models.Rule
-		bot        *models.Bot
+		message    model.Message
+		outputMsgs chan<- model.Message
+		rule       model.Rule
+		hitRule    chan<- model.Rule
+		bot        *model.Bot
 	}
 
-	testBot := new(models.Bot)
+	testBot := new(model.Bot)
 
-	testMessage := models.Message{
+	testMessage := model.Message{
 		Input:        "foo bar",
 		BotMentioned: true,
 		Vars:         make(map[string]string),
 	}
 
-	testAction := models.Action{
+	testAction := model.Action{
 		Name: "message action",
 		Type: "message",
 	}
 
-	testRule := models.Rule{
+	testRule := model.Rule{
 		Active: true,
-		Actions: []models.Action{
+		Actions: []model.Action{
 			testAction,
 		},
 		Respond:      "foo",
 		FormatOutput: "hi there from foo action",
 	}
 
-	execAction := models.Action{
+	execAction := model.Action{
 		Name: "exec action",
 		Type: "exec",
 		Cmd:  `echo "hi"`,
 	}
 
-	execRule := models.Rule{
+	execRule := model.Rule{
 		Active: true,
-		Actions: []models.Action{
+		Actions: []model.Action{
 			execAction,
 		},
 		Respond:      "foo",
 		FormatOutput: "${_exec_output}",
 	}
 
-	failAction := models.Action{
+	failAction := model.Action{
 		Name: "epic fail",
 		Type: "fail",
 	}
 
-	failRule := models.Rule{
+	failRule := model.Rule{
 		Active: true,
-		Actions: []models.Action{
+		Actions: []model.Action{
 			failAction,
 		},
 		Respond:      "foo",
@@ -907,45 +907,45 @@ func Test_doRuleActions(t *testing.T) {
 	}))
 	defer tsOK.Close()
 
-	httpAction := models.Action{
+	httpAction := model.Action{
 		Name: "http test",
 		Type: "get",
 		URL:  tsOK.URL,
 	}
 
-	httpRule := models.Rule{
+	httpRule := model.Rule{
 		Active: true,
-		Actions: []models.Action{
+		Actions: []model.Action{
 			httpAction,
 		},
 		Respond:      "foo",
 		FormatOutput: "${_raw_http_output}",
 	}
 
-	// reactionAction := models.Action{
+	// reactionAction := model.Action{
 	// 	Name: "reaction",
 	// 	Type: "get",
 	// 	URL:  tsOK.URL,
 	// }
 
-	// reactionRule := models.Rule{
+	// reactionRule := model.Rule{
 	// 	Active: true,
 	// 	Name:   "Reaction Rule",
-	// 	Actions: []models.Action{
+	// 	Actions: []model.Action{
 	// 		reactionAction,
 	// 	},
 	// 	Reaction:     ":palm_face:",
 	// 	Respond:      "foo",
 	// 	FormatOutput: "${_raw_http_output}",
-	// 	Remotes: models.Remotes{
-	// 		Slack: models.SlackConfig{
+	// 	Remotes: model.Remotes{
+	// 		Slack: model.SlackConfig{
 	// 			Attachments: []slack.Attachment{},
 	// 		},
 	// 	},
 	// }
 
-	// testReactionMessage := models.Message{
-	// 	Service:      models.MsgServiceChat,
+	// testReactionMessage := model.Message{
+	// 	Service:      model.MsgServiceChat,
 	// 	Input:        "foo bar",
 	// 	BotMentioned: true,
 	// 	Vars:         make(map[string]string),
@@ -959,7 +959,7 @@ func Test_doRuleActions(t *testing.T) {
 		args            args
 		expectedMessage string
 	}{
-		{"Missing format_output", args{message: models.Message{}, rule: models.Rule{}, bot: testBot}, "Hmm, the 'format_output' field in your configuration is empty"},
+		{"Missing format_output", args{message: model.Message{}, rule: model.Rule{}, bot: testBot}, "Hmm, the 'format_output' field in your configuration is empty"},
 		{"Message Action", args{message: testMessage, rule: testRule, bot: testBot}, "hi there from foo action"},
 		{"Exec Action", args{message: testMessage, rule: execRule, bot: testBot}, "hi"},
 		{"Http Action", args{message: testMessage, rule: httpRule, bot: testBot}, "OK"},
@@ -968,8 +968,8 @@ func Test_doRuleActions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			testOutput := make(chan models.Message, 1)
-			testHitRule := make(chan models.Rule, 1)
+			testOutput := make(chan model.Message, 1)
+			testHitRule := make(chan model.Rule, 1)
 			tt.args.hitRule = testHitRule
 			tt.args.outputMsgs = testOutput
 
@@ -985,27 +985,27 @@ func Test_doRuleActions(t *testing.T) {
 
 func Test_matcherLoop(t *testing.T) {
 	type args struct {
-		message    models.Message
-		outputMsgs chan<- models.Message
-		rules      map[string]models.Rule
-		hitRule    chan<- models.Rule
-		bot        *models.Bot
+		message    model.Message
+		outputMsgs chan<- model.Message
+		rules      map[string]model.Rule
+		hitRule    chan<- model.Rule
+		bot        *model.Bot
 	}
 
-	testBot := new(models.Bot)
-	testRules := make(map[string]models.Rule)
-	testRule := models.Rule{}
+	testBot := new(model.Bot)
+	testRules := make(map[string]model.Rule)
+	testRule := model.Rule{}
 	testRules["test"] = testRule
-	testMessage := models.Message{Input: "Hi there!", BotMentioned: true}
+	testMessage := model.Message{Input: "Hi there!", BotMentioned: true}
 
-	testMessage2 := models.Message{
-		Service:      models.MsgServiceChat,
+	testMessage2 := model.Message{
+		Service:      model.MsgServiceChat,
 		Input:        "foo test",
 		BotMentioned: true,
 		Vars:         make(map[string]string),
 	}
-	testRules2 := make(map[string]models.Rule)
-	testRule2 := models.Rule{
+	testRules2 := make(map[string]model.Rule)
+	testRule2 := model.Rule{
 		Active:        true,
 		Respond:       "foo",
 		Args:          []string{"arg1"},
@@ -1017,15 +1017,15 @@ func Test_matcherLoop(t *testing.T) {
 
 	testMsgAttributes3 := make(map[string]string)
 	testMsgAttributes3["from_schedule"] = "test-schedule"
-	testMessage3 := models.Message{
-		Service:      models.MsgServiceScheduler,
+	testMessage3 := model.Message{
+		Service:      model.MsgServiceScheduler,
 		Input:        "@every 5s",
 		Attributes:   testMsgAttributes3,
 		BotMentioned: true,
 		Vars:         make(map[string]string),
 	}
-	testRules3 := make(map[string]models.Rule)
-	testRule3 := models.Rule{
+	testRules3 := make(map[string]model.Rule)
+	testRule3 := model.Rule{
 		Active:        true,
 		Schedule:      "@every 5s",
 		Name:          "test-schedule",
@@ -1047,8 +1047,8 @@ func Test_matcherLoop(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			testOutput := make(chan models.Message, 1)
-			testHitRule := make(chan models.Rule, 1)
+			testOutput := make(chan model.Message, 1)
+			testHitRule := make(chan model.Rule, 1)
 
 			tt.args.outputMsgs = testOutput
 			tt.args.hitRule = testHitRule

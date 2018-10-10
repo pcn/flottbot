@@ -5,16 +5,16 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirupsen/logrus"
-	"github.com/target/flottbot/models"
+	"github.com/sirupsen/sp"
+	"github.com/target/flottbot/model"
 )
 
 func TestInitLogger(t *testing.T) {
 	type args struct {
-		bot *models.Bot
+		bot *model.Bot
 	}
 
-	testBot := new(models.Bot)
+	testBot := new(model.Bot)
 
 	// Test setting the error and debug level flags
 	levelTests := []struct {
@@ -61,56 +61,56 @@ func TestInitLogger(t *testing.T) {
 
 func Test_configureChatApplication(t *testing.T) {
 	type args struct {
-		bot *models.Bot
+		bot *model.Bot
 	}
 
-	testBot := new(models.Bot)
+	testBot := new(model.Bot)
 	testBot.CLI = true
 	validateRemoteSetup(testBot)
 
-	testBotNoChat := new(models.Bot)
+	testBotNoChat := new(model.Bot)
 	testBotNoChat.CLI = true
 	testBotNoChat.ChatApplication = ""
 	validateRemoteSetup(testBotNoChat)
 
-	testBotInvalidChat := new(models.Bot)
+	testBotInvalidChat := new(model.Bot)
 	testBotInvalidChat.CLI = true
 	testBotInvalidChat.ChatApplication = "fart"
 	validateRemoteSetup(testBotInvalidChat)
 
-	testBotSlackNoToken := new(models.Bot)
+	testBotSlackNoToken := new(model.Bot)
 	testBotSlackNoToken.CLI = true
 	testBotSlackNoToken.ChatApplication = "slack"
 	validateRemoteSetup(testBotSlackNoToken)
 
-	testBotSlackBadToken := new(models.Bot)
+	testBotSlackBadToken := new(model.Bot)
 	testBotSlackBadToken.CLI = true
 	testBotSlackBadToken.ChatApplication = "slack"
 	testBotSlackBadToken.SlackToken = "${TOKEN}"
 	validateRemoteSetup(testBotSlackBadToken)
 
-	testBotSlackBadVerificationToken := new(models.Bot)
+	testBotSlackBadVerificationToken := new(model.Bot)
 	testBotSlackBadVerificationToken.CLI = true
 	testBotSlackBadVerificationToken.ChatApplication = "slack"
 	testBotSlackBadVerificationToken.SlackToken = "${TOKEN}"
 	testBotSlackBadVerificationToken.SlackVerificationToken = "${TEST_BAD_VERIFICATION_TOKEN}"
 	validateRemoteSetup(testBotSlackBadVerificationToken)
 
-	testBotSlackBadWorkspaceToken := new(models.Bot)
+	testBotSlackBadWorkspaceToken := new(model.Bot)
 	testBotSlackBadWorkspaceToken.CLI = true
 	testBotSlackBadWorkspaceToken.ChatApplication = "slack"
 	testBotSlackBadWorkspaceToken.SlackToken = "${TOKEN}"
 	testBotSlackBadWorkspaceToken.SlackWorkspaceToken = "${TEST_BAD_WORKSPACE_TOKEN}"
 	validateRemoteSetup(testBotSlackBadWorkspaceToken)
 
-	testBotSlack := new(models.Bot)
+	testBotSlack := new(model.Bot)
 	testBotSlack.CLI = true
 	testBotSlack.ChatApplication = "slack"
 	testBotSlack.SlackToken = "${TEST_SLACK_TOKEN}"
 	os.Setenv("TEST_SLACK_TOKEN", "TESTTOKEN")
 	validateRemoteSetup(testBotSlack)
 
-	testBotSlackInteraction := new(models.Bot)
+	testBotSlackInteraction := new(model.Bot)
 	testBotSlackInteraction.CLI = true
 	testBotSlackInteraction.InteractiveComponents = true
 	testBotSlackInteraction.ChatApplication = "slack"
@@ -120,7 +120,7 @@ func Test_configureChatApplication(t *testing.T) {
 	os.Setenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH", "TESTPATH")
 	validateRemoteSetup(testBotSlackInteraction)
 
-	testBotSlackInteractionFail := new(models.Bot)
+	testBotSlackInteractionFail := new(model.Bot)
 	testBotSlackInteractionFail.CLI = true
 	testBotSlackInteractionFail.InteractiveComponents = true
 	testBotSlackInteractionFail.ChatApplication = "slack"
@@ -130,7 +130,7 @@ func Test_configureChatApplication(t *testing.T) {
 	os.Setenv("TEST_SLACK_INTERACTIONS_CALLBACK_PATH_FAIL", "")
 	validateRemoteSetup(testBotSlackInteractionFail)
 
-	testBotSlackEventsCallbackFail := new(models.Bot)
+	testBotSlackEventsCallbackFail := new(model.Bot)
 	testBotSlackEventsCallbackFail.CLI = true
 	testBotSlackEventsCallbackFail.InteractiveComponents = true
 	testBotSlackEventsCallbackFail.ChatApplication = "slack"
@@ -139,18 +139,18 @@ func Test_configureChatApplication(t *testing.T) {
 	testBotSlackEventsCallbackFail.SlackEventsCallbackPath = "${TEST_SLACK_EVENTS_CALLBACK_PATH_FAIL}"
 	validateRemoteSetup(testBotSlackEventsCallbackFail)
 
-	testBotDiscordNoToken := new(models.Bot)
+	testBotDiscordNoToken := new(model.Bot)
 	testBotDiscordNoToken.CLI = true
 	testBotDiscordNoToken.ChatApplication = "discord"
 	validateRemoteSetup(testBotDiscordNoToken)
 
-	testBotDiscordBadToken := new(models.Bot)
+	testBotDiscordBadToken := new(model.Bot)
 	testBotDiscordBadToken.CLI = true
 	testBotDiscordBadToken.ChatApplication = "discord"
 	testBotDiscordBadToken.DiscordToken = "${TOKEN}"
 	validateRemoteSetup(testBotDiscordBadToken)
 
-	testBotDiscord := new(models.Bot)
+	testBotDiscord := new(model.Bot)
 	testBotDiscord.CLI = true
 	testBotDiscord.ChatApplication = "discord"
 	testBotDiscord.DiscordToken = "${TEST_DISCORD_TOKEN}"
@@ -199,37 +199,37 @@ func Test_configureChatApplication(t *testing.T) {
 
 func Test_validateRemoteSetup(t *testing.T) {
 	type args struct {
-		bot *models.Bot
+		bot *model.Bot
 	}
 
-	// testBot := new(models.Bot)
+	// testBot := new(model.Bot)
 
-	testBotCLI := new(models.Bot)
+	testBotCLI := new(model.Bot)
 	testBotCLI.CLI = true
 
-	testBotCLIChat := new(models.Bot)
+	testBotCLIChat := new(model.Bot)
 	testBotCLIChat.CLI = true
 	testBotCLIChat.ChatApplication = "slack"
 
-	testBotCLIChatScheduler := new(models.Bot)
+	testBotCLIChatScheduler := new(model.Bot)
 	testBotCLIChatScheduler.CLI = true
 	testBotCLIChatScheduler.ChatApplication = "slack"
 	testBotCLIChatScheduler.Scheduler = true
 
-	testBotChatScheduler := new(models.Bot)
+	testBotChatScheduler := new(model.Bot)
 	testBotChatScheduler.ChatApplication = "slack"
 	testBotChatScheduler.Scheduler = true
 
-	testBotCLIChatSchedulerFail := new(models.Bot)
+	testBotCLIChatSchedulerFail := new(model.Bot)
 	testBotCLIChatSchedulerFail.CLI = true
 	testBotCLIChatSchedulerFail.ChatApplication = ""
 	testBotCLIChatSchedulerFail.Scheduler = true
 
-	testBotCLIScheduler := new(models.Bot)
+	testBotCLIScheduler := new(model.Bot)
 	testBotCLIScheduler.CLI = true
 	testBotCLIScheduler.Scheduler = true
 
-	testNoChatNoCLI := new(models.Bot)
+	testNoChatNoCLI := new(model.Bot)
 	testNoChatNoCLI.CLI = false
 	testNoChatNoCLI.ChatApplication = ""
 
@@ -268,11 +268,11 @@ func Test_validateRemoteSetup(t *testing.T) {
 }
 
 func TestConfigure(t *testing.T) {
-	testBot := new(models.Bot)
+	testBot := new(model.Bot)
 	testBot.CLI = true
 
 	type args struct {
-		bot *models.Bot
+		bot *model.Bot
 	}
 	tests := []struct {
 		name string

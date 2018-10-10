@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/nlopes/slack"
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/remote"
 )
 
@@ -31,8 +31,16 @@ func (c *Client) new() *slack.Client {
 	return api
 }
 
+func (c *Client) Channels() (*model.Channels, error) {
+	return nil, nil
+}
+
+func (c *Client) Login() (*model.BotUser, error) {
+	return nil, nil
+}
+
 // Reaction implementation to satisfy remote interface
-func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) Reaction(message model.Message, rule model.Rule, bot *model.Bot) {
 	if len(rule.RemoveReaction) > 0 {
 		// Init api client
 		api := c.new()
@@ -61,7 +69,7 @@ func (c *Client) Reaction(message models.Message, rule models.Rule, bot *models.
 
 // Read implementation to satisfy remote interface
 // Utilizes the Slack API client to read messages from Slack
-func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+func (c *Client) Read(inputMsgs chan<- model.Message, rules map[string]model.Rule, bot *model.Bot) {
 	// init api client
 	api := c.new()
 
@@ -104,7 +112,7 @@ func (c *Client) Read(inputMsgs chan<- models.Message, rules map[string]models.R
 }
 
 // Send implementation to satisfy remote interface
-func (c *Client) Send(message models.Message, bot *models.Bot) {
+func (c *Client) Send(message model.Message, bot *model.Bot) {
 	bot.Log.Debugf("Sending message %s", message.ID)
 
 	api := c.new()
@@ -117,11 +125,11 @@ func (c *Client) Send(message models.Message, bot *models.Bot) {
 	}
 
 	// Timestamp message
-	message.EndTime = models.MessageTimestamp()
+	message.EndTime = model.MessageTimestamp()
 
 	// send message  based on type
 	switch message.Type {
-	case models.MsgTypeDirect, models.MsgTypeChannel, models.MsgTypePrivateChannel:
+	case model.MsgTypeDirect, model.MsgTypeChannel, model.MsgTypePrivateChannel:
 		send(api, message, bot)
 	default:
 		bot.Log.Warn("Received unknown  message type - no message to send")
@@ -133,7 +141,7 @@ var interactionsRouter *mux.Router
 // InteractiveComponents implementation to satisfy remote interface
 // It will serve as a way for your bot to handle advance messaging, such as message attachments.
 // When your bot is up and running, it will have an http/https endpoint to handle rules for sending attachments.
-func (c *Client) InteractiveComponents(inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) {
+func (c *Client) InteractiveComponents(inputMsgs chan<- model.Message, message *model.Message, rule model.Rule, bot *model.Bot) {
 	if bot.InteractiveComponents && len(c.VerificationToken) > 0 {
 		if len(bot.SlackInteractionsCallbackPath) == 0 {
 			bot.Log.Error("Need to specify a callback path for the 'slack_interactions_callback_path' field in the bot.yml (e.g. \"/slack_events/v1/mybot_dev-v1_interactions\")")

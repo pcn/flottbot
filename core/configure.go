@@ -5,13 +5,13 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/utils"
 )
 
 // Configure searches the config directory for the bot.yml to create a Bot object.
 // The Bot object will be passed around to make accessible system-specific information.
-func Configure(bot *models.Bot) {
+func Configure(bot *model.Bot) {
 	log.Info("Configuring bot...")
 
 	initLogger(bot)
@@ -24,7 +24,7 @@ func Configure(bot *models.Bot) {
 }
 
 // initLogger sets log configuration for the bot
-func initLogger(b *models.Bot) {
+func initLogger(b *model.Bot) {
 	b.Log = *log.New()
 
 	b.Log.SetLevel(log.ErrorLevel)
@@ -40,7 +40,7 @@ func initLogger(b *models.Bot) {
 
 // configureChatApplication configures a user's specified chat application
 // TODO: Refactor to keep remote specifics in remote/
-func configureChatApplication(bot *models.Bot) {
+func configureChatApplication(bot *model.Bot) {
 	if len(bot.ChatApplication) > 0 {
 		switch strings.ToLower(bot.ChatApplication) {
 		case "discord":
@@ -113,7 +113,7 @@ func configureChatApplication(bot *models.Bot) {
 	}
 }
 
-func validateRemoteSetup(bot *models.Bot) {
+func validateRemoteSetup(bot *model.Bot) {
 	if len(bot.ChatApplication) > 0 {
 		bot.RunChat = true
 	}

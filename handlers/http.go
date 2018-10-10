@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/utils"
 )
 
 // HTTPReq handles 'http' actions for rules
-func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, error) {
+func HTTPReq(args model.Action, msg *model.Message) (*model.HTTPResponse, error) {
 	if args.Timeout == 0 {
 		// Default HTTP Timeout of 10 seconds
 		args.Timeout = 10
@@ -73,7 +73,7 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 		return nil, err
 	}
 
-	result := models.HTTPResponse{
+	result := model.HTTPResponse{
 		Status: resp.StatusCode,
 		Raw:    string(bodyBytes),
 		Data:   fields,
@@ -83,7 +83,7 @@ func HTTPReq(args models.Action, msg *models.Message) (*models.HTTPResponse, err
 }
 
 // Depending on the type of request we want to deal with the payload accordingly
-func prepRequestData(url, actionType string, data map[string]interface{}, msg *models.Message) (string, io.Reader, error) {
+func prepRequestData(url, actionType string, data map[string]interface{}, msg *model.Message) (string, io.Reader, error) {
 	if len(data) > 0 {
 		if actionType == http.MethodGet {
 			query, err := createGetQuery(data, msg)
@@ -118,7 +118,7 @@ func extractFields(raw []byte) (interface{}, error) {
 }
 
 // Create GET query string
-func createGetQuery(data map[string]interface{}, msg *models.Message) (string, error) {
+func createGetQuery(data map[string]interface{}, msg *model.Message) (string, error) {
 	u := url.Values{}
 	for k, v := range data {
 		subv, err := utils.Substitute(v.(string), msg.Vars)
@@ -134,7 +134,7 @@ func createGetQuery(data map[string]interface{}, msg *models.Message) (string, e
 }
 
 // Create querydata payload for non-GET requests
-func createJSONPayload(data map[string]interface{}, msg *models.Message) (string, error) {
+func createJSONPayload(data map[string]interface{}, msg *model.Message) (string, error) {
 	dataNice := utils.MakeNiceJSON(data)
 	str, err := json.Marshal(dataNice)
 	if err != nil {

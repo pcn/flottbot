@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/utils"
 )
 
@@ -16,7 +16,7 @@ import (
 // and proceeds to create Rule objects for each .yml rule,
 // and then finally populates a rules map with said Rule objects.
 // The rules map is used to dictate the bots behavior and response patterns.
-func Rules(rules *map[string]models.Rule, bot *models.Bot) {
+func Rules(rules *map[string]model.Rule, bot *model.Bot) {
 	// Check if the rules directory even exists
 	bot.Log.Debug("Looking for rules directory...")
 	searchDir, err := utils.PathExists(path.Join("config", "rules"))
@@ -54,7 +54,7 @@ func Rules(rules *map[string]models.Rule, bot *models.Bot) {
 			bot.Log.Errorf("Error while reading rule file '%s': %s \n", ruleFile, err)
 		}
 
-		rule := models.Rule{}
+		rule := model.Rule{}
 		err = ruleConf.Unmarshal(&rule)
 		if err != nil {
 			log.Fatalf(err.Error())

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 )
 
 /*
@@ -28,22 +28,22 @@ func findKey(m map[string]string, value string) (key string, ok bool) {
 }
 
 // getMessageType - gets the type of message based on where it came from
-func getMessageType(channel string) (models.MessageType, error) {
+func getMessageType(channel string) (model.MessageType, error) {
 	re := regexp.MustCompile(`^(C|D|G)[A-Z0-9]{8}$`) // match known 9-char channel ID types
 	match := re.FindStringSubmatch(channel)
 	if len(match) > 0 {
 		switch match[1] { // [1] grabs the first letter, [0] will grab the entire channel ID
 		case "D":
-			return models.MsgTypeDirect, nil
+			return model.MsgTypeDirect, nil
 		case "C":
-			return models.MsgTypeChannel, nil
+			return model.MsgTypeChannel, nil
 		case "G":
-			return models.MsgTypePrivateChannel, nil
+			return model.MsgTypePrivateChannel, nil
 		default:
-			return models.MsgTypeUnknown, fmt.Errorf("Unable to handle channel: UNKNOWN_%s", channel)
+			return model.MsgTypeUnknown, fmt.Errorf("Unable to handle channel: UNKNOWN_%s", channel)
 		}
 	}
-	return models.MsgTypeUnknown, fmt.Errorf("Unable to handle channel: UNKNOWN_%s", channel)
+	return model.MsgTypeUnknown, fmt.Errorf("Unable to handle channel: UNKNOWN_%s", channel)
 }
 
 // isValidPath - regex matches a URL's path string to check if it is a correct path

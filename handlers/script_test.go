@@ -4,11 +4,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 )
 
-func newExecAction(cmd string) models.Action {
-	return models.Action{
+func newExecAction(cmd string) model.Action {
+	return model.Action{
 		Name: "Simple",
 		Type: "exec",
 		Cmd:  cmd,
@@ -17,14 +17,14 @@ func newExecAction(cmd string) models.Action {
 
 func TestScriptExec(t *testing.T) {
 	type args struct {
-		args models.Action
-		msg  *models.Message
-		bot  *models.Bot
+		args model.Action
+		msg  *model.Message
+		bot  *model.Bot
 	}
 
-	bot := new(models.Bot)
+	bot := new(model.Bot)
 
-	simpleScriptMessage := models.NewMessage()
+	simpleScriptMessage := model.NewMessage()
 	simpleScriptMessage.Vars["test"] = "echo"
 
 	simpleScriptAction := newExecAction(`echo "hi there"`)
@@ -44,16 +44,16 @@ func TestScriptExec(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *models.ScriptResponse
+		want    *model.ScriptResponse
 		wantErr bool
 	}{
-		{"Simple Script", args{args: simpleScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 0, Output: "hi there"}, false},
-		{"Slow Script", args{args: slowScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: "Hmm, something timed out. Please try again."}, true},
-		{"Error Script", args{args: errorScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: ""}, true},
-		{"Existing Var Script", args{args: varExistsScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 0, Output: "echo"}, false},
-		{"Missing Var Script", args{args: varMissingScriptAction, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: ""}, true},
-		{"Script does not exist", args{args: cmdNotFound, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 127, Output: "/bin/sh: 0: Can't open ./this/is/a/trap.sh"}, true},
-		{"StdOut before exit code 1", args{args: msgBeforeExit, msg: &simpleScriptMessage, bot: bot}, &models.ScriptResponse{Status: 1, Output: "error is coming"}, true},
+		{"Simple Script", args{args: simpleScriptAction, msg: &simpleScriptMessage, bot: bot}, &model.ScriptResponse{Status: 0, Output: "hi there"}, false},
+		{"Slow Script", args{args: slowScriptAction, msg: &simpleScriptMessage, bot: bot}, &model.ScriptResponse{Status: 1, Output: "Hmm, something timed out. Please try again."}, true},
+		{"Error Script", args{args: errorScriptAction, msg: &simpleScriptMessage, bot: bot}, &model.ScriptResponse{Status: 1, Output: ""}, true},
+		{"Existing Var Script", args{args: varExistsScriptAction, msg: &simpleScriptMessage, bot: bot}, &model.ScriptResponse{Status: 0, Output: "echo"}, false},
+		{"Missing Var Script", args{args: varMissingScriptAction, msg: &simpleScriptMessage, bot: bot}, &model.ScriptResponse{Status: 1, Output: ""}, true},
+		{"Script does not exist", args{args: cmdNotFound, msg: &simpleScriptMessage, bot: bot}, &model.ScriptResponse{Status: 127, Output: "/bin/sh: 0: Can't open ./this/is/a/trap.sh"}, true},
+		{"StdOut before exit code 1", args{args: msgBeforeExit, msg: &simpleScriptMessage, bot: bot}, &model.ScriptResponse{Status: 1, Output: "error is coming"}, true},
 	}
 
 	for _, tt := range tests {

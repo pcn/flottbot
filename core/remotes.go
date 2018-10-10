@@ -3,10 +3,10 @@ package core
 import (
 	"strings"
 
-	"github.com/target/flottbot/models"
+	"git.target.com/rapid/flottbot/remote/scheduler"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/remote/cli"
 	"github.com/target/flottbot/remote/discord"
-	"github.com/target/flottbot/remote/scheduler"
 	"github.com/target/flottbot/remote/slack"
 )
 
@@ -25,7 +25,7 @@ import (
 //		This remote allows us to read messages being sent internally by a running cronjob
 //		created by a schedule type rule, e.g. see '/config/rules/schedule.yml'.
 // TODO: Refactor to keep remote specific stuff in remote/
-func Remotes(inputMsgs chan<- models.Message, rules map[string]models.Rule, bot *models.Bot) {
+func Remotes(inputMsgs chan<- model.Message, rules map[string]model.Rule, bot *model.Bot) {
 	// Run a chat application
 	if bot.RunChat {
 		chatApp := strings.ToLower(bot.ChatApplication)

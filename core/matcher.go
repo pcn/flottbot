@@ -13,19 +13,19 @@ import (
 	"github.com/mohae/deepcopy"
 
 	"github.com/target/flottbot/handlers"
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/utils"
 )
 
 // Matcher will search through the map of loaded rules, determine if a rule was hit, and process said rule to be sent out as a message
-func Matcher(inputMsgs <-chan models.Message, outputMsgs chan<- models.Message, rules map[string]models.Rule, hitRule chan<- models.Rule, bot *models.Bot) {
+func Matcher(inputMsgs <-chan model.Message, outputMsgs chan<- model.Message, rules map[string]model.Rule, hitRule chan<- model.Rule, bot *model.Bot) {
 	for {
 		message := <-inputMsgs
 		matcherLoop(message, outputMsgs, rules, hitRule, bot)
 	}
 }
 
-func matcherLoop(message models.Message, outputMsgs chan<- models.Message, rules map[string]models.Rule, hitRule chan<- models.Rule, bot *models.Bot) {
+func matcherLoop(message model.Message, outputMsgs chan<- model.Message, rules map[string]model.Rule, hitRule chan<- model.Rule, bot *model.Bot) {
 	match := false
 
 RuleSearch:
@@ -37,13 +37,13 @@ RuleSearch:
 			processedInput, hit := getProccessedInputAndHitValue(message.Input, rule.Respond, rule.Hear)
 			// Determine what service we are processing the rule for
 			switch message.Service {
-			case models.MsgServiceChat, models.MsgServiceCLI:
+			case model.MsgServiceChat, model.MsgServiceCLI:
 				foundMatch, stopSearch := handleChatServiceRule(outputMsgs, message, hitRule, rule, processedInput, hit, bot)
 				match = foundMatch
 				if stopSearch {
 					break RuleSearch
 				}
-			case models.MsgServiceScheduler:
+			case model.MsgServiceScheduler:
 				foundMatch, stopSearch := handleSchedulerServiceRule(outputMsgs, message, hitRule, rule, bot)
 				match = foundMatch
 				if stopSearch {
@@ -70,7 +70,7 @@ func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue
 }
 
 // handleChatServiceRule handles the processing logic for a rule that came from either the chat application or CLI remote
-func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, processedInput string, hit bool, bot *models.Bot) (bool, bool) {
+func handleChatServiceRule(outputMsgs chan<- model.Message, message model.Message, hitRule chan<- model.Rule, rule model.Rule, processedInput string, hit bool, bot *model.Bot) (bool, bool) {
 	match, stopSearch := false, false
 	if len(rule.Respond) > 0 || len(rule.Hear) > 0 {
 		// You can only use 'respond' OR 'hear'
@@ -83,7 +83,7 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 		}
 
 		// if it's a 'respond' rule, make sure the bot was mentioned
-		if hit && len(rule.Respond) > 0 && !message.BotMentioned && message.Type != models.MsgTypeDirect {
+		if hit && len(rule.Respond) > 0 && !message.BotMentioned && message.Type != model.MsgTypeDirect {
 			return match, stopSearch
 		}
 
@@ -98,11 +98,11 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 			// Do additional checks on the rule before running
 			if !isValidHitChatRule(&message, rule, processedInput, bot) {
 				outputMsgs <- message
-				hitRule <- models.Rule{}
+				hitRule <- model.Rule{}
 				// prevent actions from being run; exit early
 				return match, stopSearch
 			}
-			msg := deepcopy.Copy(message).(models.Message)
+			msg := deepcopy.Copy(message).(model.Message)
 			go doRuleActions(msg, outputMsgs, rule, hitRule, bot)
 			return match, stopSearch
 		}
@@ -111,11 +111,11 @@ func handleChatServiceRule(outputMsgs chan<- models.Message, message models.Mess
 }
 
 // handleSchedulerServiceRule handles the processing logic for a rule that came from the Scheduler remote
-func handleSchedulerServiceRule(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rule models.Rule, bot *models.Bot) (bool, bool) {
+func handleSchedulerServiceRule(outputMsgs chan<- model.Message, message model.Message, hitRule chan<- model.Rule, rule model.Rule, bot *model.Bot) (bool, bool) {
 	match, stopSearch := false, false
 	if len(rule.Schedule) > 0 && rule.Name == message.Attributes["from_schedule"] {
 		match, stopSearch = true, true // Don't go through more rules if rule is matched
-		msg := deepcopy.Copy(message).(models.Message)
+		msg := deepcopy.Copy(message).(model.Message)
 		go doRuleActions(msg, outputMsgs, rule, hitRule, bot)
 		return match, stopSearch
 	}
@@ -123,9 +123,9 @@ func handleSchedulerServiceRule(outputMsgs chan<- models.Message, message models
 }
 
 // handleNoMatch - handles logic for unmatched rule
-func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hitRule chan<- models.Rule, rules map[string]models.Rule, bot *models.Bot) {
+func handleNoMatch(outputMsgs chan<- model.Message, message model.Message, hitRule chan<- model.Rule, rules map[string]model.Rule, bot *model.Bot) {
 	// If bot was addressed or was private messaged, print help text by default
-	if message.Type == models.MsgTypeDirect || message.BotMentioned {
+	if message.Type == model.MsgTypeDirect || message.BotMentioned {
 		bot.Log.Debug("Bot was addressed, but no rule matched. Showing help")
 		// Publish metric as none
 		Prommetric(bot.Name+"-None", bot)
@@ -145,19 +145,19 @@ func handleNoMatch(outputMsgs chan<- models.Message, message models.Message, hit
 		// Populate output with help text defined above
 		message.Output = helpMsg
 		outputMsgs <- message
-		hitRule <- models.Rule{}
+		hitRule <- model.Rule{}
 	}
 }
 
 // isValidHitChatRule does additional checks on a successfully hit rule that came from the chat or CLI service
-func isValidHitChatRule(message *models.Message, rule models.Rule, processedInput string, bot *models.Bot) bool {
+func isValidHitChatRule(message *model.Message, rule model.Rule, processedInput string, bot *model.Bot) bool {
 	// Check to honor allow_users or allow_usergroups
 	canRunRule := utils.CanTrigger(message.Vars["_user.name"], message.Vars["_user.id"], rule, bot)
 	if !canRunRule {
 		message.Output = fmt.Sprintf("You are not allowed to run the '%s' rule.", rule.Name)
 		// forcing direct message
 		message.DirectMessageOnly = true
-		message.Type = models.MsgTypeDirect
+		message.Type = model.MsgTypeDirect
 		return false
 	}
 	// If this wasn't a 'hear' rule, handle the args
@@ -179,11 +179,11 @@ func isValidHitChatRule(message *models.Message, rule models.Rule, processedInpu
 }
 
 // core handler routing for all allowed actions
-func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rule models.Rule, hitRule chan<- models.Rule, bot *models.Bot) {
+func doRuleActions(message model.Message, outputMsgs chan<- model.Message, rule model.Rule, hitRule chan<- model.Rule, bot *model.Bot) {
 	// React to message which triggered rule
 	if len(rule.Reaction) > 0 {
-		copyrule := deepcopy.Copy(rule).(models.Rule)
-		copymessage := deepcopy.Copy(message).(models.Message)
+		copyrule := deepcopy.Copy(rule).(model.Rule)
+		copymessage := deepcopy.Copy(message).(model.Message)
 		handleReaction(outputMsgs, &copymessage, hitRule, copyrule)
 	}
 
@@ -209,7 +209,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 				directive = false
 			}
 			// Create copy of message so as to not overwrite other message action type messages
-			copy := deepcopy.Copy(message).(models.Message)
+			copy := deepcopy.Copy(message).(model.Message)
 			err = handleMessage(action, outputMsgs, &copy, directive, rule.StartMessageThread, hitRule, bot)
 		// Fallback to error if action type is invalid
 		default:
@@ -258,7 +258,7 @@ func doRuleActions(message models.Message, outputMsgs chan<- models.Message, rul
 }
 
 // craftResponse handles format_output to make the final message from the bot user-friendly
-func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (string, error) {
+func craftResponse(rule model.Rule, msg model.Message, bot *model.Bot) (string, error) {
 	// The user removed the 'format_output' field, or it's not set
 	if len(rule.FormatOutput) == 0 {
 		return "", errors.New("Hmm, the 'format_output' field in your configuration is empty")
@@ -305,12 +305,12 @@ func craftResponse(rule models.Rule, msg models.Message, bot *models.Bot) (strin
 }
 
 // Handle script execution actions
-func handleExec(action models.Action, msg *models.Message, bot *models.Bot) error {
+func handleExec(action model.Action, msg *model.Message, bot *model.Bot) error {
 	if len(action.Cmd) == 0 {
 		return fmt.Errorf("no command was supplied for the '%s' action named: %s", action.Type, action.Name)
 	}
 
-	resp := &models.ScriptResponse{}
+	resp := &model.ScriptResponse{}
 	resp, err := handlers.ScriptExec(action, msg, bot)
 
 	// Set explicit variables to make script output, script status code accessible in rules
@@ -325,12 +325,12 @@ func handleExec(action models.Action, msg *models.Message, bot *models.Bot) erro
 }
 
 // Handle HTTP call actions
-func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) error {
+func handleHTTP(action model.Action, msg *model.Message, bot *model.Bot) error {
 	if len(action.URL) == 0 {
 		return fmt.Errorf("no URL was supplied for the '%s' action named: %s", action.Type, action.Name)
 	}
 
-	resp := &models.HTTPResponse{}
+	resp := &model.HTTPResponse{}
 	resp, err := handlers.HTTPReq(action, msg)
 	if err != nil {
 		msg.Error = fmt.Sprintf("Error in request made by action '%s'. See bot admin for more information", action.Name)
@@ -383,7 +383,7 @@ func handleHTTP(action models.Action, msg *models.Message, bot *models.Bot) erro
 }
 
 // Handle standard message/logging actions
-func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *models.Message, direct, startMsgThread bool, hitRule chan<- models.Rule, bot *models.Bot) error {
+func handleMessage(action model.Action, outputMsgs chan<- model.Message, msg *model.Message, direct, startMsgThread bool, hitRule chan<- model.Rule, bot *model.Bot) error {
 	if len(action.Message) == 0 {
 		return fmt.Errorf("No message was set")
 	}
@@ -417,18 +417,18 @@ func handleMessage(action models.Action, outputMsgs chan<- models.Message, msg *
 	msg.DirectMessageOnly = direct
 	// Send out message
 	outputMsgs <- *msg
-	hitRule <- models.Rule{}
+	hitRule <- model.Rule{}
 	return nil
 }
 
 // Handle initial emoji reaction when rule is matched
-func handleReaction(outputMsgs chan<- models.Message, msg *models.Message, hitRule chan<- models.Rule, rule models.Rule) {
+func handleReaction(outputMsgs chan<- model.Message, msg *model.Message, hitRule chan<- model.Rule, rule model.Rule) {
 	outputMsgs <- *msg
 	hitRule <- rule
 }
 
 // Update emoji reaction when specified
-func updateReaction(action models.Action, rule *models.Rule, vars map[string]string, bot *models.Bot) {
+func updateReaction(action model.Action, rule *model.Rule, vars map[string]string, bot *model.Bot) {
 	if len(action.Reaction) > 0 && len(rule.Reaction) > 0 {
 		// Check if the value contains html/template code
 		if strings.Contains(action.Reaction, "{{") {

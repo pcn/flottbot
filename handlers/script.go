@@ -8,12 +8,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/utils"
 )
 
 // ScriptExec handles 'exec' actions; script executions for rules
-func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*models.ScriptResponse, error) {
+func ScriptExec(args model.Action, msg *model.Message, bot *model.Bot) (*model.ScriptResponse, error) {
 	bot.Log.Debugf("Executing process for action '%s'", args.Name)
 	// Default timeout of 20 seconds for any script execution, modifyable in rule file
 	if args.Timeout == 0 {
@@ -21,7 +21,7 @@ func ScriptExec(args models.Action, msg *models.Message, bot *models.Bot) (*mode
 	}
 
 	// Prep default response
-	result := &models.ScriptResponse{
+	result := &model.ScriptResponse{
 		Status: 1, // Default is exit code 1 (error)
 	}
 

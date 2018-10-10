@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/nlopes/slack"
 	"github.com/nlopes/slack/slackevents"
-	"github.com/target/flottbot/models"
+	"github.com/target/flottbot/model"
 	"github.com/target/flottbot/utils"
 )
 
@@ -23,7 +23,7 @@ Slack helper functions (anything that uses the 'nlopes/slack' package)
 */
 
 // constructInteractiveComponentMessage creates a message specifically for a matched rule from the Interactive Components server
-func constructInteractiveComponentMessage(callback slack.AttachmentActionCallback, bot *models.Bot) models.Message {
+func constructInteractiveComponentMessage(callback slack.AttachmentActionCallback, bot *model.Bot) model.Message {
 	text := ""
 	if len(callback.Actions) > 0 {
 		for _, action := range callback.Actions {
@@ -33,7 +33,7 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 			}
 		}
 	}
-	message := models.NewMessage()
+	message := model.NewMessage()
 	messageType, err := getMessageType(callback.Channel.ID)
 	if err != nil {
 		bot.Log.Debug(err.Error())
@@ -59,7 +59,7 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 		bot.Log.Debug(err.Error())
 	}
 
-	if msgType == models.MsgTypePrivateChannel {
+	if msgType == model.MsgTypePrivateChannel {
 		channel = callback.Channel.ID
 	}
 	contents, mentioned := removeBotMention(text, bot.ID)
@@ -67,7 +67,7 @@ func constructInteractiveComponentMessage(callback slack.AttachmentActionCallbac
 }
 
 // getEventsAPIHealthHandler creates and returns the handler for health checks on the Slack Events API reader
-func getEventsAPIHealthHandler(bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
+func getEventsAPIHealthHandler(bot *model.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			bot.Log.Errorf("getEventsAPIHealthHandler: Received invalid method: %s", r.Method)
@@ -100,7 +100,7 @@ func handleURLVerification(body string, w http.ResponseWriter, r *http.Request) 
 	sendHTTPResponse(statusCode, "", slackResponse.Challenge, w, r)
 }
 
-func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bot *models.Bot, inputMsgs chan<- models.Message, w http.ResponseWriter, r *http.Request) {
+func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bot *model.Bot, inputMsgs chan<- model.Message, w http.ResponseWriter, r *http.Request) {
 	// write back to the event to ensure the event does not trigger again
 	sendHTTPResponse(http.StatusOK, "", "{}", w, r)
 
@@ -125,7 +125,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 			}
 			timestamp := ev.TimeStamp
 			threadTimestamp := ev.ThreadTimeStamp
-			inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, mentioned, user, bot)
+			inputMsgs <- populateMessage(model.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, mentioned, user, bot)
 		}
 	// This is an Event shared between RTM and the Events API
 	case *slack.MemberJoinedChannelEvent:
@@ -142,7 +142,7 @@ func handleCallBack(api *slack.Client, event slackevents.EventsAPIInnerEvent, bo
 }
 
 // getEventsAPIEventHandler creates and returns the handler for events coming from the the Slack Events API reader
-func getEventsAPIEventHandler(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
+func getEventsAPIEventHandler(api *slack.Client, vToken string, inputMsgs chan<- model.Message, bot *model.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			bot.Log.Errorf("Slack API Server: invalid method %s", r.Method)
@@ -176,7 +176,7 @@ func getEventsAPIEventHandler(api *slack.Client, vToken string, inputMsgs chan<-
 }
 
 // getInteractiveComponentHealthHandler creates and returns the handler for health checks on the Interactive Component server
-func getInteractiveComponentHealthHandler(bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
+func getInteractiveComponentHealthHandler(bot *model.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			bot.Log.Errorf("getInteractiveComponentHealthHandler: Received invalid method %s", r.Method)
@@ -190,7 +190,7 @@ func getInteractiveComponentHealthHandler(bot *models.Bot) func(w http.ResponseW
 }
 
 // getInteractiveComponentRuleHandler creates and returns the handler for processing and sending out messages from the Interactive Component server
-func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan<- models.Message, message *models.Message, rule models.Rule, bot *models.Bot) func(w http.ResponseWriter, r *http.Request) {
+func getInteractiveComponentRuleHandler(verificationToken string, inputMsgs chan<- model.Message, message *model.Message, rule model.Rule, bot *model.Bot) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			bot.Log.Errorf("getInteractiveComponentRuleHandler: Received invalid method: %s", r.Method)
@@ -255,7 +255,7 @@ func getChannels(api *slack.Client) map[string]string {
 }
 
 // getSlackUsers gets Slack user objects for each user listed in messages 'output_to_users' field
-func getSlackUsers(api *slack.Client, message models.Message) ([]slack.User, error) {
+func getSlackUsers(api *slack.Client, message model.Message) ([]slack.User, error) {
 	slackUsers := []slack.User{}
 	// grab list of users to message if 'output_to_users' was specified
 	if len(message.OutputToUsers) > 0 {
@@ -269,7 +269,7 @@ func getSlackUsers(api *slack.Client, message models.Message) ([]slack.User, err
 }
 
 // getUserID - returns the user's Slack user ID via email
-func getUserID(email string, users []slack.User, bot *models.Bot) string {
+func getUserID(email string, users []slack.User, bot *model.Bot) string {
 	email = strings.ToLower(email)
 	for _, u := range users {
 		if strings.Contains(strings.ToLower(u.Profile.Email), email) {
@@ -281,7 +281,7 @@ func getUserID(email string, users []slack.User, bot *models.Bot) string {
 }
 
 // handleDirectMessage - handle sending logic for direct messages
-func handleDirectMessage(api *slack.Client, message models.Message, bot *models.Bot) error {
+func handleDirectMessage(api *slack.Client, message model.Message, bot *model.Bot) error {
 	// Is output to channels set?
 	if len(message.OutputToChannels) > 0 {
 		bot.Log.Warn("You have specified 'direct_message_only' as 'true' and provided 'output_to_channels'." +
@@ -299,7 +299,7 @@ func handleDirectMessage(api *slack.Client, message models.Message, bot *models.
 }
 
 // handleNonDirectMessage - handle sending logic for non direct messages
-func handleNonDirectMessage(api *slack.Client, users []slack.User, message models.Message, bot *models.Bot) error {
+func handleNonDirectMessage(api *slack.Client, users []slack.User, message model.Message, bot *model.Bot) error {
 	// 'direct_message_only' is either 'false' OR
 	// 'direct_message_only' was probably never set
 	// Is output to channels set?
@@ -341,7 +341,7 @@ func handleNonDirectMessage(api *slack.Client, users []slack.User, message model
 }
 
 // populateBotUsers populates slack users
-func populateBotUsers(slackUsers []slack.User, bot *models.Bot) {
+func populateBotUsers(slackUsers []slack.User, bot *model.Bot) {
 	if len(slackUsers) > 0 {
 		users := make(map[string]string)
 
@@ -354,7 +354,7 @@ func populateBotUsers(slackUsers []slack.User, bot *models.Bot) {
 }
 
 // populateUserGroups populates slack user groups
-func populateUserGroups(bot *models.Bot) {
+func populateUserGroups(bot *model.Bot) {
 	if len(bot.SlackWorkspaceToken) > 0 {
 		userGroups := make(map[string]string)
 		wsAPI := slack.New(bot.SlackWorkspaceToken)
@@ -373,12 +373,12 @@ func populateUserGroups(bot *models.Bot) {
 }
 
 // populateMessage - populates the 'Message' object to be passed on for processing/sending
-func populateMessage(message models.Message, msgType models.MessageType, channel, text, timeStamp string, threadTimestamp string, mentioned bool, user *slack.User, bot *models.Bot) models.Message {
+func populateMessage(message model.Message, msgType model.MessageType, channel, text, timeStamp string, threadTimestamp string, mentioned bool, user *slack.User, bot *model.Bot) model.Message {
 	switch msgType {
-	case models.MsgTypeDirect, models.MsgTypeChannel, models.MsgTypePrivateChannel:
+	case model.MsgTypeDirect, model.MsgTypeChannel, model.MsgTypePrivateChannel:
 		// Populate message attributes
 		message.Type = msgType
-		message.Service = models.MsgServiceChat
+		message.Service = model.MsgServiceChat
 		message.ChannelID = channel
 		message.Input = text
 		message.Output = ""
@@ -388,7 +388,7 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 		message.Attributes["ws_token"] = bot.SlackWorkspaceToken
 
 		// If the message read was not a dm, get the name of the channel it came from
-		if msgType != models.MsgTypeDirect {
+		if msgType != model.MsgTypeDirect {
 			name, ok := findKey(bot.Channels, channel)
 			if !ok {
 				bot.Log.Warnf("populateMessage: Could not find name of channel '%s'.", channel)
@@ -415,7 +415,7 @@ func populateMessage(message models.Message, msgType models.MessageType, channel
 }
 
 // processInteractiveComponentRule processes a rule that was triggered by an interactive component, e.g. Slack interactive messages
-func processInteractiveComponentRule(rule models.Rule, message *models.Message, bot *models.Bot) {
+func processInteractiveComponentRule(rule model.Rule, message *model.Message, bot *model.Bot) {
 	if &rule != nil {
 		// Get slack attachments from hit rule and append to outgoing message
 		config := rule.Remotes.Slack
@@ -439,7 +439,7 @@ func processInteractiveComponentRule(rule models.Rule, message *models.Message, 
 
 // readFromEventsAPI utilizes the Slack API client to read event-based messages.
 // This method of reading is preferred over the RTM method.
-func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models.Message, bot *models.Bot) {
+func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- model.Message, bot *model.Bot) {
 	// Create router for the events server
 	router := mux.NewRouter()
 
@@ -457,7 +457,7 @@ func readFromEventsAPI(api *slack.Client, vToken string, inputMsgs chan<- models
 
 // readFromRTM utilizes the Slack API client to read messages via RTM.
 // This method of reading is not preferred and the event-based read should instead be used.
-func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bot) {
+func readFromRTM(rtm *slack.RTM, inputMsgs chan<- model.Message, bot *model.Bot) {
 	go rtm.ManageConnection()
 	for {
 		select {
@@ -480,7 +480,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 					}
 					timestamp := ev.Timestamp
 					threadTimestamp := ev.ThreadTimestamp
-					inputMsgs <- populateMessage(models.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, mentioned, user, bot)
+					inputMsgs <- populateMessage(model.NewMessage(), msgType, channel, text, timestamp, threadTimestamp, mentioned, user, bot)
 				}
 			case *slack.ConnectedEvent:
 				// populate users
@@ -513,7 +513,7 @@ func readFromRTM(rtm *slack.RTM, inputMsgs chan<- models.Message, bot *models.Bo
 }
 
 // send - handles the sending logic of a message going to Slack
-func send(api *slack.Client, message models.Message, bot *models.Bot) {
+func send(api *slack.Client, message model.Message, bot *model.Bot) {
 	users, err := getSlackUsers(api, message)
 	if err != nil {
 		bot.Log.Errorf("Problem sending message: %s", err.Error())
@@ -532,17 +532,17 @@ func send(api *slack.Client, message models.Message, bot *models.Bot) {
 }
 
 // sendBackToOriginMessage - sends a message back to where it came from in Slack; this is pretty much a catch-all among the other send functions
-func sendBackToOriginMessage(api *slack.Client, message models.Message) error {
+func sendBackToOriginMessage(api *slack.Client, message model.Message) error {
 	return sendMessage(api, message.IsEphemeral, message.ChannelID, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
 }
 
 // sendChannelMessage - sends a message to a Slack channel
-func sendChannelMessage(api *slack.Client, channel string, message models.Message) error {
+func sendChannelMessage(api *slack.Client, channel string, message model.Message) error {
 	return sendMessage(api, message.IsEphemeral, channel, message.Vars["_user.id"], message.Output, message.ThreadTimestamp, message.Attributes["ws_token"], message.Remotes.Slack.Attachments)
 }
 
 // sendDirectMessage - sends a message back to the user who dm'ed your bot
-func sendDirectMessage(api *slack.Client, userID string, message models.Message) error {
+func sendDirectMessage(api *slack.Client, userID string, message model.Message) error {
 	_, _, imChannelID, err := api.OpenIMChannel(userID)
 	if err != nil {
 		return err
