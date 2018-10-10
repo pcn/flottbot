@@ -21,5 +21,6 @@ type Rule struct {
 	IncludeInHelp      bool     `mapstructure:"include_in_help" binding:"required"`
 	Active             bool     `mapstructure:"active" binding:"required"`
 	Debug              bool     `mapstructure:"debug" binding:"required"`
+	Vars               map[string]string
 	RemoveReaction     string
 }

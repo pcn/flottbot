@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirupsen/sp"
+	"github.com/sirupsen/logrus"
 	"github.com/target/flottbot/model"
 )
 

@@ -30,6 +30,7 @@ const (
 type ActionHTTP struct {
 	URL           string                 `mapstructure:"url"`
 	Auth          []Auth                 `mapstructure:"auth"`
+	Method        string                 `mapstructure:"method"`
 	QueryData     map[string]interface{} `mapstructure:"query_data"`
 	CustomHeaders map[string]string      `mapstructure:"custom_headers"`
 }

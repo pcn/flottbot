@@ -17,6 +17,7 @@ type Message struct {
 	EndTime         int64
 	IsError         bool
 	BotMentioned    bool
+	Vars            map[string]string
 }
 
 // MessageType is used to differentiate between different message types

@@ -14,8 +14,15 @@ import (
 	"github.com/target/flottbot/utils"
 )
 
+// HTTPResponse ...
+type HTTPResponse struct {
+	Status int
+	Raw    string
+	Data   interface{}
+}
+
 // HTTPReq handles 'http' actions for rules
-func HTTPReq(args model.Action, msg *model.Message) (*model.HTTPResponse, error) {
+func HTTPReq(args model.Action, msg *model.Message) (*HTTPResponse, error) {
 	if args.Timeout == 0 {
 		// Default HTTP Timeout of 10 seconds
 		args.Timeout = 10
@@ -36,12 +43,12 @@ func HTTPReq(args model.Action, msg *model.Message) (*model.HTTPResponse, error)
 	// substitution above may have introduced spaces in the URL
 	url = strings.Replace(url, " ", "%20", -1)
 
-	url, payload, err := prepRequestData(url, args.Type, args.QueryData, msg)
+	url, payload, err := prepRequestData(url, args.Method, args.QueryData, msg)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(args.Type, url, payload)
+	req, err := http.NewRequest(args.Method, url, payload)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +80,7 @@ func HTTPReq(args model.Action, msg *model.Message) (*model.HTTPResponse, error)
 		return nil, err
 	}
 
-	result := model.HTTPResponse{
+	result := HTTPResponse{
 		Status: resp.StatusCode,
 		Raw:    string(bodyBytes),
 		Data:   fields,
@@ -83,9 +90,9 @@ func HTTPReq(args model.Action, msg *model.Message) (*model.HTTPResponse, error)
 }
 
 // Depending on the type of request we want to deal with the payload accordingly
-func prepRequestData(url, actionType string, data map[string]interface{}, msg *model.Message) (string, io.Reader, error) {
+func prepRequestData(url, method string, data map[string]interface{}, msg *model.Message) (string, io.Reader, error) {
 	if len(data) > 0 {
-		if actionType == http.MethodGet {
+		if method == http.MethodGet {
 			query, err := createGetQuery(data, msg)
 			if err != nil {
 				return url, nil, err

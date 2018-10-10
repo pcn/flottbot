@@ -58,7 +58,7 @@ func (c *Client) Read(inputMsgs chan<- model.Message, rules map[string]model.Rul
 		return
 	}
 	// Wait here until CTRL-C or other term signal is received
-	bot.Log.Infof("Discord is now running '%s'. Press CTRL-C to exit", bot.Name)
+	bot.Log.Infof("Discord is now running '%s'. Press CTRL-C to exit", bot.User.Name)
 
 	// get informatiom about ourself
 	user, err := dg.User("@me")
@@ -66,7 +66,7 @@ func (c *Client) Read(inputMsgs chan<- model.Message, rules map[string]model.Rul
 		bot.Log.Errorf("Failed to get bot name from Discord. Error: %s", err.Error())
 		return
 	}
-	bot.Name = user.Username
+	bot.User.Name = user.Username
 
 	// Register a callback for MessageCreate events
 	dg.AddHandler(handleDiscordMessage(bot, inputMsgs))
@@ -102,7 +102,7 @@ func handleDiscordMessage(bot *model.Bot, inputMsgs chan<- model.Message) interf
 		if ch.Type == discordgo.ChannelTypeGuildText {
 			botmention := false
 			for _, mention := range m.Mentions {
-				if mention.Username == bot.Name {
+				if mention.Username == bot.User.Name {
 					botmention = true
 				}
 			}
@@ -111,7 +111,7 @@ func handleDiscordMessage(bot *model.Bot, inputMsgs chan<- model.Message) interf
 			}
 		}
 		// Process message
-		message := model.NewMessage()
+		message := model.Message{}
 		switch m.Type {
 		case discordgo.MessageTypeDefault:
 			t, err := m.Timestamp.Parse()

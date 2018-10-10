@@ -15,7 +15,7 @@ Discord helper functions (anything that uses the discord package)
 func populateMessage(message model.Message, msgType model.MessageType, channel, text, timeStamp string, mentioned bool, user *discordgo.User, bot *model.Bot) model.Message {
 	// Populate message attributes
 	message.Type = msgType
-	message.Service = model.MsgServiceChat
+	message.Remote = "discord"
 	message.ChannelID = channel
 	message.Input = text
 	message.Output = ""
@@ -40,6 +40,5 @@ func populateMessage(message model.Message, msgType model.MessageType, channel, 
 		message.Vars["_user.id"] = user.ID
 	}
 
-	message.Debug = true
 	return message
 }

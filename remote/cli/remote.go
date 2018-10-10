@@ -67,14 +67,14 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 	fmt.Println("Enter CLI mode: hit <Enter>. <Ctrl-C> to exit.")
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		fmt.Print("\n", bot.Name, "> ")
-		req := scanner.Text()
-		if len(strings.TrimSpace(req)) > 0 {
-			message := model.NewMessage()
-
-			message.Type = model.MsgTypeDirect
-			message.Service = model.MsgServiceCLI
-			message.Input = req
+		fmt.Print("\n", bot.User.Name, "> ")
+		msgText := scanner.Text()
+		if len(strings.TrimSpace(msgText)) > 0 {
+			message := model.Message{
+				Type:   model.MsgTypeDirect,
+				Input:  msgText,
+				Remote: "cli",
+			}
 
 			message.Vars["_user.id"] = user
 			message.Vars["_user.firstname"] = user
@@ -91,7 +91,7 @@ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM`)
 func (c *Client) Send(message model.Message, bot *model.Bot) {
 	w := bufio.NewWriter(os.Stdout)
 	var re = regexp.MustCompile(`(?m)^(.*)`)
-	var substitution = fmt.Sprintf(`%s> $1`, bot.Name)
+	var substitution = fmt.Sprintf(`%s> $1`, bot.User.Name)
 	fmt.Fprintln(w, re.ReplaceAllString(message.Output, substitution))
 	w.Flush()
 }
