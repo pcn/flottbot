@@ -22,5 +22,5 @@ type Rule struct {
 	Active             bool     `mapstructure:"active" binding:"required"`
 	Debug              bool     `mapstructure:"debug" binding:"required"`
 	Vars               map[string]string
-	RemoveReaction     string
+	RemoveReaction     string // TODO: move to action?
 }

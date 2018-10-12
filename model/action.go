@@ -29,7 +29,7 @@ const (
 // ActionHTTP are fields needed for a HTTP actions
 type ActionHTTP struct {
 	URL           string                 `mapstructure:"url"`
-	Auth          []Auth                 `mapstructure:"auth"`
+	Auth          Auth                   `mapstructure:"auth"`
 	Method        string                 `mapstructure:"method"`
 	QueryData     map[string]interface{} `mapstructure:"query_data"`
 	CustomHeaders map[string]string      `mapstructure:"custom_headers"`
@@ -42,7 +42,8 @@ type ActionExec struct {
 
 // Auth is a basic Auth data structure
 type Auth struct {
-	Type string `mapstructure:"type"`
-	User string `mapstructure:"user"`
-	Pass string `mapstructure:"pass"`
+	Type  string `mapstructure:"type"`
+	User  string `mapstructure:"user"`
+	Pass  string `mapstructure:"pass"`
+	Token string `mapstructure:"token"`
 }

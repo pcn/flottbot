@@ -34,22 +34,37 @@ RuleSearch:
 		// Only check active rules.
 		if rule.Active {
 			// Init some variables for use below
-			processedInput, hit := getProccessedInputAndHitValue(message.Input, rule.Respond, rule.Hear)
+			processedInput, hit := getProccessedInputAndHitValue(message.Input, rule.Trigger)
 			// Determine what service we are processing the rule for
-			switch message.Service {
-			case model.MsgServiceChat, model.MsgServiceCLI:
-				foundMatch, stopSearch := handleChatServiceRule(outputMsgs, message, hitRule, rule, processedInput, hit, bot)
-				match = foundMatch
-				if stopSearch {
-					break RuleSearch
-				}
-			case model.MsgServiceScheduler:
+
+			if message.Remote == "scheduler" {
 				foundMatch, stopSearch := handleSchedulerServiceRule(outputMsgs, message, hitRule, rule, bot)
 				match = foundMatch
 				if stopSearch {
 					break RuleSearch
 				}
+			} else {
+				foundMatch, stopSearch := handleChatServiceRule(outputMsgs, message, hitRule, rule, processedInput, hit, bot)
+				match = foundMatch
+				if stopSearch {
+					break RuleSearch
+				}
 			}
+
+			// switch message.Service {
+			// case model.MsgServiceChat, model.MsgServiceCLI:
+			// 	foundMatch, stopSearch := handleChatServiceRule(outputMsgs, message, hitRule, rule, processedInput, hit, bot)
+			// 	match = foundMatch
+			// 	if stopSearch {
+			// 		break RuleSearch
+			// 	}
+			// case model.MsgServiceScheduler:
+			// 	foundMatch, stopSearch := handleSchedulerServiceRule(outputMsgs, message, hitRule, rule, bot)
+			// 	match = foundMatch
+			// 	if stopSearch {
+			// 		break RuleSearch
+			// 	}
+			// }
 		}
 	}
 	// No rule was matched
@@ -59,13 +74,12 @@ RuleSearch:
 }
 
 // getProccessedInputAndHitValue gets the processed input from the message input and the true/false if it was a successfully hit rule
-func getProccessedInputAndHitValue(messageInput, ruleRespondValue, ruleHearValue string) (string, bool) {
+func getProccessedInputAndHitValue(messageInput, ruleTrigger string) (string, bool) {
 	processedInput, hit := "", false
-	if len(ruleRespondValue) > 0 {
-		processedInput, hit = utils.Match(ruleRespondValue, messageInput, true)
-	} else if len(ruleHearValue) > 0 { // Are we listening to everything?
-		_, hit = utils.Match(ruleHearValue, messageInput, false)
+	if len(ruleTrigger) > 0 {
+		processedInput, hit = utils.Match(ruleTrigger, messageInput, true)
 	}
+
 	return processedInput, hit
 }
 

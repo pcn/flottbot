@@ -44,6 +44,9 @@ func ScriptExec(args model.Action, msg *model.Message, bot *model.Bot) (*ScriptR
 	// Parse out all the arguments from the supplied command
 	bin := utils.FindArgs(cmdProcessed)
 	// Execute the command + arguments with the context
+	// WARNING: The following has some security implications
+	// make sure you are running this in a controlled environment
+	// TODO: Add some basic security checks
 	cmd := exec.CommandContext(ctx, bin[0], bin[1:]...)
 
 	// Capture stdout/stderr
